@@ -1,2 +1,29 @@
 server:
   port: 8000
+
+
+spring:
+  config:
+    activate:
+      on-profile: default
+  application:
+    name: apigateway-service
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
+    listener:
+      simple:
+        prefetch: 5
+  cloud:
+    gateway:
+      routes:
+        - id: user-service-public
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/user-service/users/signup, /user-service/users/emails/send-code
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
