@@ -2,13 +2,13 @@ package com.setung.userservice.dto
 
 import com.setung.userservice.entity.EmailCodeType
 import jakarta.validation.constraints.Email
-import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 
 data class SendEmailCodeRequest(
 
     @field:Email
     val email: String,
 
-    @field:NotBlank
+    @field:NotNull
     val type: EmailCodeType
 )

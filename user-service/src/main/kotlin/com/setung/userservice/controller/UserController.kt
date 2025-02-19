@@ -22,6 +22,7 @@ class UserController(
         ResponseEntity(userService.signup(request), HttpStatus.OK)
 
     @PostMapping("/emails/send-code")
-    fun sendEmailCode(@RequestBody request: SendEmailCodeRequest) =
+    fun sendEmailCode(@Valid @RequestBody request: SendEmailCodeRequest) =
         ResponseEntity(userService.sendEmailCode(request), HttpStatus.OK)
+
 }

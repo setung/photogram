@@ -10,7 +10,6 @@ import com.setung.userservice.error.NotFoundException
 import com.setung.userservice.repo.UserRepository
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 
 @Service
 class UserService(
@@ -20,7 +19,6 @@ class UserService(
     val emailService: EmailClient
 ) {
 
-    @Transactional
     fun signup(request: UserSignupRequest): Long {
         if (userRepository.existsByEmail(request.email)) throw DuplicateEmailException(request.email)
 
@@ -31,13 +29,12 @@ class UserService(
         return userRepository.save(user).id ?: throw IllegalStateException("Failed to save user")
     }
 
-    @Transactional
     fun sendEmailCode(request: SendEmailCodeRequest) {
         val code = emailCodeService.generateEmailCode(request.email, request.type)
         emailService.send(request.email, code)
     }
 
-    @Transactional(readOnly = true)
     fun findById(id: Long): User =
-        userRepository.findById(id).orElseThrow { NotFoundException("Could not find user with id ${id}") }
+        userRepository.findById(id)
+            .orElseThrow { NotFoundException("Could not find user with id ${id}") }
 }

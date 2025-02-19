@@ -13,6 +13,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(
         MethodArgumentNotValidException::class,
         HttpMessageNotReadableException::class,
+        InvalidEmailCodeException::class
     )
     fun handleValidationException(ex: Exception): ResponseEntity<String> {
         return ResponseEntity(ex.message, HttpStatus.BAD_REQUEST)
