@@ -2,12 +2,11 @@ package com.setung.userservice.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.setung.userservice.config.SecurityConfig
+import com.setung.userservice.dto.LoginRequest
 import com.setung.userservice.dto.SendEmailCodeRequest
 import com.setung.userservice.dto.UserSignupRequest
 import com.setung.userservice.entity.EmailCodeType
-import com.setung.userservice.error.DuplicateEmailException
-import com.setung.userservice.error.InvalidEmailCodeException
-import com.setung.userservice.error.NotFoundRedisDataException
+import com.setung.userservice.error.*
 import com.setung.userservice.service.UserService
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -135,6 +134,59 @@ class UserControllerTest {
                     .content(objectMapper.writeValueAsString(request))
             )
                 .andExpect(status().isOk)
+        }
+    }
+
+    @Nested
+    inner class LoginTest {
+
+        @Test
+        @DisplayName(" 로그인 성공 테스트")
+        fun loginSuccessTest() {
+            val request = LoginRequest("test@test.com", "1234")
+            given(userService.login(request)).willReturn("jwt-token")
+
+            mockMvc.perform(
+                MockMvcRequestBuilders
+                    .post("/users/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$").value("jwt-token"))
+        }
+
+        @Test
+        @DisplayName(" 로그인 실패 테스트 - 가입되지 않은 이메일")
+        fun loginFailureTestWithNotJoinedEmail() {
+            val request = LoginRequest("no_joined@test.com", "1234")
+            given(userService.login(request)).willThrow(NotFoundException("not found email"))
+
+            mockMvc.perform(
+                MockMvcRequestBuilders
+                    .post("/users/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+
+                .andExpect(status().isNotFound)
+        }
+
+        @Test
+        @DisplayName(" 로그인 실패 테스트 - 잘못된 비밀번호")
+        fun loginFailureTestWithWrongPassword() {
+            val request = LoginRequest("Wrong_password@test.com", "1234")
+            given(userService.login(request)).willThrow(InvalidPasswordException())
+
+            mockMvc.perform(
+                MockMvcRequestBuilders
+                    .post("/users/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+
+                .andExpect(status().isUnauthorized)
         }
     }
 }

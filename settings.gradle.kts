@@ -1,3 +1,4 @@
 rootProject.name = "photogram"
 
-include("user-service","config-service","gateway-service","discovery-service")
+include("user-service", "config-service", "gateway-service", "discovery-service")
+include("auth-library")

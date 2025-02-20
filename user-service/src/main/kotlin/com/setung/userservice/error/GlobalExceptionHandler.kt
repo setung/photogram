@@ -32,4 +32,11 @@ class GlobalExceptionHandler {
     fun notFoundException(ex: Exception): ResponseEntity<String> {
         return ResponseEntity(ex.message, HttpStatus.NOT_FOUND)
     }
+
+    @ExceptionHandler(
+        UnAuthorizationException::class,
+    )
+    fun unAuthorizationException(ex: Exception): ResponseEntity<String> {
+        return ResponseEntity(ex.message, HttpStatus.UNAUTHORIZED)
+    }
 }

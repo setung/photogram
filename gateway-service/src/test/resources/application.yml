@@ -1,12 +1,4 @@
-server:
-  port: 8000
-
 spring:
-  config:
-    activate:
-      on-profile: default
-  application:
-    name: apigateway-service
   cloud:
     gateway:
       routes:
@@ -27,7 +19,3 @@ spring:
             - RemoveRequestHeader=Cookie
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
             - JwtAuthGatewayFilter
-
-jwt:
-  secret: 9F8xvM1QK5Pj1W7RZyG+2tOQVp3X6LbBgNT9aFovRj0=
-  expiration: 3600000

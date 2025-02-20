@@ -1,10 +1,7 @@
 package com.setung.userservice.entity
 
 import com.setung.userservice.dto.UserSignupRequest
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
+import jakarta.persistence.*
 
 @Entity
 class User(
@@ -17,15 +14,19 @@ class User(
 
     val email: String,
 
-    val password: String
+    val password: String,
 
-) : BaseEntity() {
+    @Enumerated(EnumType.STRING)
+    val status: UserStatus,
+
+    ) : BaseEntity() {
     companion object {
         fun of(request: UserSignupRequest, encryptedPassword: String) = User(
             id = null,
             name = request.name,
             email = request.email,
-            password = encryptedPassword
+            password = encryptedPassword,
+            status = UserStatus.NORMAL
         )
     }
 }
