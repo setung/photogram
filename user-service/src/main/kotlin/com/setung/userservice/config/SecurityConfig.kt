@@ -26,4 +26,5 @@ class SecurityConfig {
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
         return http.build()
     }
+
 }

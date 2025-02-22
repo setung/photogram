@@ -1,10 +1,12 @@
 package com.setung.userservice.service
 
 import com.setung.userservice.config.TestContainerConfig
+import com.setung.userservice.dto.LoginRequest
 import com.setung.userservice.dto.UserSignupRequest
 import com.setung.userservice.entity.EmailCodeType
 import com.setung.userservice.error.DuplicationException
 import com.setung.userservice.error.InvalidEmailCodeException
+import com.setung.userservice.error.InvalidPasswordException
 import com.setung.userservice.error.NotFoundException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -68,6 +70,34 @@ class UserServiceTest @Autowired constructor(
                 userService.signup(UserSignupRequest(email, "name", "password", code))
             }
         }
+    }
+
+    @Nested
+    inner class LoginTest {
+
+        @Test
+        @DisplayName("로그인 성공 테스트")
+        fun loginSuccessTest() {
+            val token = userService.login(LoginRequest("tester_1@test.com", "1234"))
+            assertThat(token).isNotNull()
+        }
+
+        @Test
+        @DisplayName("로그인 실패 테스트 - 가입하지 않은 이메일")
+        fun loginFailureTestWithNoJoinedEmail() {
+            assertThrows<NotFoundException> {
+                userService.login(LoginRequest("not_joined_Email@test.com", "1234"))
+            }
+        }
+
+        @Test
+        @DisplayName("로그인 실패 테스트 - 비밀번호 틀림")
+        fun loginFailureTestWithWrongPassword() {
+            assertThrows<InvalidPasswordException> {
+                userService.login(LoginRequest("tester_1@test.com", "12345"))
+            }
+        }
+
     }
 
 }
