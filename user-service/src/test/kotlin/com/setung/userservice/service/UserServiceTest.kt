@@ -1,15 +1,14 @@
 package com.setung.userservice.service
 
 import com.setung.userservice.config.TestContainerConfig
-import com.setung.userservice.dto.LoginRequest
-import com.setung.userservice.dto.PasswordUpdateRequest
-import com.setung.userservice.dto.UserSignupRequest
-import com.setung.userservice.dto.UserUpdateRequest
+import com.setung.userservice.dto.*
 import com.setung.userservice.entity.EmailCodeType
+import com.setung.userservice.entity.UserStatus
 import com.setung.userservice.error.DuplicationException
 import com.setung.userservice.error.InvalidEmailCodeException
 import com.setung.userservice.error.InvalidPasswordException
 import com.setung.userservice.error.NotFoundException
+import com.setung.userservice.repo.UserRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -26,7 +25,8 @@ import kotlin.test.assertTrue
 @Import(TestContainerConfig::class)
 class UserServiceTest @Autowired constructor(
     val emailCodeService: EmailCodeService,
-    val userService: UserService
+    val userService: UserService,
+    val userRepository: UserRepository
 ) {
 
     @Autowired
@@ -147,4 +147,35 @@ class UserServiceTest @Autowired constructor(
             assertThrows<InvalidEmailCodeException> { userService.updatePassword(user.id!!, request) }
         }
     }
+
+    @Nested
+    inner class DeleteTest {
+
+        @Test
+        @DisplayName("삭제 성공 테스트 - 삭제 후 상태는 DELETE가 되고 삭제된 이메일로 재가입이 가능")
+        fun deleteSuccessTest() {
+            val user = userService.findById(3)
+            val deleteCode = emailCodeService.generateEmailCode(user.email, EmailCodeType.ACCOUNT_DELETE)
+
+            userService.delete(user.id!!, UserDeleteRequest(deleteCode))
+            val deletedUser = userRepository.findById(3).get()
+
+            assertThat(deletedUser.status).isEqualTo(UserStatus.DELETED)
+
+            val signupCode = emailCodeService.generateEmailCode(user.email, EmailCodeType.SIGNUP)
+            val newUserId = userService.signup(UserSignupRequest(user.email, user.name, user.password, signupCode))
+
+            val newUser = userService.findById(newUserId)
+
+            assertThat(newUser.email).isEqualTo(user.email)
+            assertThat(newUser.status).isEqualTo(UserStatus.NORMAL)
+        }
+
+        @Test
+        @DisplayName("조회 실패 테스트 - 삭제된 계정은 조회시 예외")
+        fun findDeletedUserFailureTest() {
+            assertThrows<NotFoundException> { userService.findById(4) }
+        }
+    }
+
 }

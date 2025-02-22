@@ -36,6 +36,10 @@ class User(
         this.password = password
     }
 
+    fun delete() {
+        status = UserStatus.DELETED
+    }
+
     companion object {
         fun of(request: UserSignupRequest, encryptedPassword: String) = User(
             id = null,
