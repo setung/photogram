@@ -2,7 +2,9 @@ package com.setung.userservice.service
 
 import com.setung.userservice.config.TestContainerConfig
 import com.setung.userservice.dto.LoginRequest
+import com.setung.userservice.dto.PasswordUpdateRequest
 import com.setung.userservice.dto.UserSignupRequest
+import com.setung.userservice.dto.UserUpdateRequest
 import com.setung.userservice.entity.EmailCodeType
 import com.setung.userservice.error.DuplicationException
 import com.setung.userservice.error.InvalidEmailCodeException
@@ -16,6 +18,8 @@ import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.security.crypto.password.PasswordEncoder
+import kotlin.test.assertTrue
 
 
 @SpringBootTest
@@ -24,6 +28,9 @@ class UserServiceTest @Autowired constructor(
     val emailCodeService: EmailCodeService,
     val userService: UserService
 ) {
+
+    @Autowired
+    private lateinit var passwordEncoder: PasswordEncoder
 
     @Nested
     inner class UserSignupTest {
@@ -100,4 +107,44 @@ class UserServiceTest @Autowired constructor(
 
     }
 
+    @Nested
+    inner class UpdateTest {
+
+        @Test
+        @DisplayName("유저 업데이트 성공 테스트")
+        fun userUpdateSuccessTest() {
+            val user = userService.findById(2)
+            val request = UserUpdateRequest("updatedName", "updatedBiography", true)
+
+            userService.update(user.id!!, request)
+            val updatedUser = userService.findById(2)
+
+            assertThat(updatedUser.name).isEqualTo(request.name)
+            assertThat(updatedUser.biography).isEqualTo(request.biography)
+            assertThat(updatedUser.isPrivate).isEqualTo(request.isPrivate)
+        }
+
+        @Test
+        @DisplayName("패스워드 업데이트 성공 테스트")
+        fun passwordUpdateSuccessTest() {
+            val user = userService.findById(2)
+            val code = emailCodeService.generateEmailCode(user.email, EmailCodeType.PASSWORD_RESET)
+            val request = PasswordUpdateRequest("12341234", code)
+
+            userService.updatePassword(user.id!!, request)
+            val updatedUser = userService.findById(2)
+
+            assertTrue(passwordEncoder.matches(request.password, updatedUser.password))
+        }
+
+        @Test
+        @DisplayName("패스워드 업데이트 실패 테스트 - emailCode가 유효하지않은 경우")
+        fun passwordUpdateFailureTestWitInvalidEmailCode() {
+            val user = userService.findById(2)
+            emailCodeService.generateEmailCode(user.email, EmailCodeType.PASSWORD_RESET)
+            val request = PasswordUpdateRequest("12341234", "invalid-code")
+
+            assertThrows<InvalidEmailCodeException> { userService.updatePassword(user.id!!, request) }
+        }
+    }
 }

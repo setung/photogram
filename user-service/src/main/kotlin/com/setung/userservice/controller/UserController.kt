@@ -1,8 +1,7 @@
 package com.setung.userservice.controller
 
-import com.setung.userservice.dto.LoginRequest
-import com.setung.userservice.dto.SendEmailCodeRequest
-import com.setung.userservice.dto.UserSignupRequest
+import com.setung.userservice.annotation.LoginUser
+import com.setung.userservice.dto.*
 import com.setung.userservice.service.UserService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -30,4 +29,12 @@ class UserController(
     @GetMapping("/{userId}")
     fun get(@PathVariable userId: Long) =
         ResponseEntity(userService.findById(userId), HttpStatus.OK)
+
+    @PatchMapping("/me")
+    fun update(@RequestBody request: UserUpdateRequest, @LoginUser userId: Long) =
+        ResponseEntity(userService.update(userId, request), HttpStatus.OK)
+
+    @PatchMapping("/me/password")
+    fun updatePassword(@RequestBody request: PasswordUpdateRequest, @LoginUser userId: Long) =
+        ResponseEntity(userService.updatePassword(userId, request), HttpStatus.OK)
 }

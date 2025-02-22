@@ -2,9 +2,7 @@ package com.setung.userservice.service
 
 import com.setung.auth.jwt.JwtProvider
 import com.setung.userservice.client.EmailClient
-import com.setung.userservice.dto.LoginRequest
-import com.setung.userservice.dto.SendEmailCodeRequest
-import com.setung.userservice.dto.UserSignupRequest
+import com.setung.userservice.dto.*
 import com.setung.userservice.entity.EmailCodeType
 import com.setung.userservice.entity.User
 import com.setung.userservice.entity.UserStatus
@@ -14,6 +12,7 @@ import com.setung.userservice.error.NotFoundException
 import com.setung.userservice.repo.UserRepository
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class UserService(
@@ -55,5 +54,19 @@ class UserService(
             throw InvalidPasswordException()
 
         return jwtProvider.createToken(user.id!!)
+    }
+
+    @Transactional
+    fun update(id: Long, request: UserUpdateRequest) {
+        findById(id).update(request)
+    }
+
+    @Transactional
+    fun updatePassword(id: Long, request: PasswordUpdateRequest) {
+        val user = findById(id)
+        val encryptedPassword = passwordEncoder.encode(request.password)
+        emailCodeService.verifyEmailCode(user.email, request.code, EmailCodeType.PASSWORD_RESET)
+
+        user.updatePassword(encryptedPassword)
     }
 }

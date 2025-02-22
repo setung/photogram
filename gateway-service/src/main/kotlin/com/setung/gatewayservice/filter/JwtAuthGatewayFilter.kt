@@ -1,5 +1,6 @@
 package com.setung.gatewayservice.filter
 
+import com.setung.auth.constant.HttpHeader
 import com.setung.auth.jwt.JwtProvider
 import org.springframework.cloud.gateway.filter.GatewayFilter
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory
@@ -32,7 +33,7 @@ class JwtAuthGatewayFilter(
             val newRequest = exchange.request.mutate()
                 .headers {
                     it.remove(HttpHeaders.AUTHORIZATION)
-                    it.set("User-Id", jwtProvider.getUserId(jwt).toString())
+                    it.set(HttpHeader.USER_ID.value, jwtProvider.getUserId(jwt).toString())
                 }
                 .build()
 

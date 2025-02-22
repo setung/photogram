@@ -27,7 +27,15 @@ spring:
             - RemoveRequestHeader=Cookie
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
             - JwtAuthGatewayFilter
-
+        - id: user-service-patch
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/user-service/users/me/**
+            - Method=PATCH
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+            - JwtAuthGatewayFilter
 jwt:
   secret: 9F8xvM1QK5Pj1W7RZyG+2tOQVp3X6LbBgNT9aFovRj0=
   expiration: 3600000

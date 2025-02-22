@@ -2,9 +2,7 @@ package com.setung.userservice.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.setung.userservice.config.SecurityConfig
-import com.setung.userservice.dto.LoginRequest
-import com.setung.userservice.dto.SendEmailCodeRequest
-import com.setung.userservice.dto.UserSignupRequest
+import com.setung.userservice.dto.*
 import com.setung.userservice.entity.EmailCodeType
 import com.setung.userservice.error.*
 import com.setung.userservice.service.UserService
@@ -187,6 +185,92 @@ class UserControllerTest {
             )
 
                 .andExpect(status().isUnauthorized)
+        }
+    }
+
+    @Nested
+    inner class UpdateTest {
+
+        @Test
+        @DisplayName("[200] 유저 업데이트 성공 테스트")
+        fun userUpdateSuccessTest() {
+            val request = UserUpdateRequest("name", "biography", false)
+            doNothing().`when`(userService).update(1L, request)
+
+            mockMvc.perform(
+                MockMvcRequestBuilders
+                    .patch("/users/me")
+                    .header("user-id", 1)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+
+                .andExpect(status().isOk)
+        }
+
+        @Test
+        @DisplayName("[401] 유저 업데이트 실패 테스트 - user-id 헤더가 없는 경우")
+        fun userUpdateFailureTestWithoutUserIdHeaderTest() {
+            val request = UserUpdateRequest("name", "biography", false)
+            doNothing().`when`(userService).update(1L, request)
+
+            mockMvc.perform(
+                MockMvcRequestBuilders
+                    .patch("/users/me")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+
+                .andExpect(status().isUnauthorized)
+        }
+
+        @Test
+        @DisplayName("[200] 패스워드 업데이트 성공 테스트")
+        fun passwordUpdateSuccessTest() {
+            val request = PasswordUpdateRequest("password", "code")
+            doNothing().`when`(userService).updatePassword(1, request)
+
+            mockMvc.perform(
+                MockMvcRequestBuilders
+                    .patch("/users/me/password")
+                    .header("user-id", 1)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+
+                .andExpect(status().isOk)
+        }
+
+        @Test
+        @DisplayName("[401] 패스워드 업데이트 실패 테스트 - user-id 헤더가 없는 경우")
+        fun passwordUpdateFailureTestWithoutUserIdHeaderTest() {
+            val request = PasswordUpdateRequest("password", "code")
+            doNothing().`when`(userService).updatePassword(1, request)
+
+            mockMvc.perform(
+                MockMvcRequestBuilders
+                    .patch("/users/me/password")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+
+                .andExpect(status().isUnauthorized)
+        }
+
+        @Test
+        @DisplayName("[400] 패스워드 업데이트 실패 테스트 - emailCode가 유효하지않은 경우")
+        fun passwordUpdateFailureT2estWithoutUserIdHeaderTest() {
+            val request = PasswordUpdateRequest("password", "wrong-code")
+            given(userService.updatePassword(1, request)).willThrow(InvalidEmailCodeException())
+            mockMvc.perform(
+                MockMvcRequestBuilders
+                    .patch("/users/me/password")
+                    .header("user-id", 1)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+
+                .andExpect(status().isBadRequest)
         }
     }
 }
