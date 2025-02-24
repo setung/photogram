@@ -1,0 +1,79 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: user-service-private-get
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/user-service/users/me
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+            - JwtAuthGatewayFilter
+
+        - id: user-service-private-post
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+            - JwtAuthGatewayFilter
+
+        - id: user-service-private-patch
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/user-service/users/me
+            - Method=PATCH
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+            - JwtAuthGatewayFilter
+
+        - id: user-service-private-delete
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/user-service/users/me
+            - Method=DELETE
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+            - JwtAuthGatewayFilter
+
+        - id: user-service-public-get
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/user-service/users/**
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+
+        - id: user-service-public-post
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/user-service/users/signup, /user-service/users/emails/send-code, /user-service/users/login
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+
+        - id: user-service-public-patch
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=
+            - Method=PATCH
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+
+        - id: user-service-public-delete
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=
+            - Method=DELETE
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
