@@ -1,6 +1,7 @@
 package com.setung.userservice.entity
 
 import com.setung.userservice.dto.UserSignupRequest
+import com.setung.userservice.dto.UserUpdateRequest
 import jakarta.persistence.*
 
 @Entity
@@ -14,19 +15,40 @@ class User(
 
     val email: String,
 
-    val password: String,
+    var password: String,
 
     @Enumerated(EnumType.STRING)
-    val status: UserStatus,
+    var status: UserStatus,
 
-    ) : BaseEntity() {
+    var biography: String?,
+
+    var isPrivate: Boolean
+
+) : BaseEntity() {
+
+    fun update(request: UserUpdateRequest) {
+        name = request.name
+        biography = request.biography
+        isPrivate = request.isPrivate
+    }
+
+    fun updatePassword(password: String) {
+        this.password = password
+    }
+
+    fun delete() {
+        status = UserStatus.DELETED
+    }
+
     companion object {
         fun of(request: UserSignupRequest, encryptedPassword: String) = User(
             id = null,
             name = request.name,
             email = request.email,
             password = encryptedPassword,
-            status = UserStatus.NORMAL
+            status = UserStatus.NORMAL,
+            biography = null,
+            isPrivate = false
         )
     }
 }

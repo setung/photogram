@@ -1,0 +1,3 @@
+ALTER TABLE user
+    ADD COLUMN biography VARCHAR(255) NULL,
+    ADD COLUMN is_private BOOLEAN DEFAULT false;

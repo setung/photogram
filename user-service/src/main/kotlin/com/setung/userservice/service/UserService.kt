@@ -2,9 +2,7 @@ package com.setung.userservice.service
 
 import com.setung.auth.jwt.JwtProvider
 import com.setung.userservice.client.EmailClient
-import com.setung.userservice.dto.LoginRequest
-import com.setung.userservice.dto.SendEmailCodeRequest
-import com.setung.userservice.dto.UserSignupRequest
+import com.setung.userservice.dto.*
 import com.setung.userservice.entity.EmailCodeType
 import com.setung.userservice.entity.User
 import com.setung.userservice.entity.UserStatus
@@ -44,8 +42,8 @@ class UserService(
     }
 
     fun findById(id: Long): User =
-        userRepository.findById(id)
-            .orElseThrow { NotFoundException("Could not find user with id ${id}") }
+        userRepository.findByIdAndStatus(id, UserStatus.NORMAL)
+            ?: throw NotFoundException("Could not find user with id ${id}")
 
     fun login(request: LoginRequest): String {
         val user = userRepository.findByEmailAndStatus(request.email, UserStatus.NORMAL)
@@ -56,4 +54,30 @@ class UserService(
 
         return jwtProvider.createToken(user.id!!)
     }
+
+    fun update(id: Long, request: UserUpdateRequest) {
+        val user = findById(id)
+        user.update(request)
+        userRepository.save(user)
+    }
+
+    fun updatePassword(id: Long, request: PasswordUpdateRequest) {
+        val user = findById(id)
+        val encryptedPassword = passwordEncoder.encode(request.password)
+        emailCodeService.verifyEmailCode(user.email, request.code, EmailCodeType.PASSWORD_RESET)
+
+        user.updatePassword(encryptedPassword)
+
+        userRepository.save(user)
+    }
+
+    fun delete(id: Long, request: UserDeleteRequest) {
+        val user = findById(id)
+        emailCodeService.verifyEmailCode(user.email, request.code, EmailCodeType.ACCOUNT_DELETE)
+
+        user.delete()
+
+        userRepository.save(user)
+    }
+
 }
