@@ -71,11 +71,13 @@ class UserService(
         userRepository.save(user)
     }
 
-    @Transactional
     fun delete(id: Long, request: UserDeleteRequest) {
         val user = findById(id)
         emailCodeService.verifyEmailCode(user.email, request.code, EmailCodeType.ACCOUNT_DELETE)
+
         user.delete()
+
+        userRepository.save(user)
     }
 
 }
