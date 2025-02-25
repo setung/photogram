@@ -42,8 +42,8 @@ class UserService(
     }
 
     fun findById(id: Long): User =
-        userRepository.findById(id)
-            .orElseThrow { NotFoundException("Could not find user with id ${id}") }
+        userRepository.findByIdAndStatus(id, UserStatus.NORMAL)
+            ?: throw NotFoundException("Could not find user with id ${id}")
 
     fun login(request: LoginRequest): String {
         val user = userRepository.findByEmailAndStatus(request.email, UserStatus.NORMAL)
@@ -70,4 +70,12 @@ class UserService(
 
         userRepository.save(user)
     }
+
+    @Transactional
+    fun delete(id: Long, request: UserDeleteRequest) {
+        val user = findById(id)
+        emailCodeService.verifyEmailCode(user.email, request.code, EmailCodeType.ACCOUNT_DELETE)
+        user.delete()
+    }
+
 }
