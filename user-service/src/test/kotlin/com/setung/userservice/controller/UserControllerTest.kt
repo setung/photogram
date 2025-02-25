@@ -5,6 +5,7 @@ import com.setung.userservice.config.SecurityConfig
 import com.setung.userservice.dto.*
 import com.setung.userservice.entity.EmailCodeType
 import com.setung.userservice.error.*
+import com.setung.userservice.service.EmailCodeService
 import com.setung.userservice.service.UserService
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -24,6 +25,9 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 @WebMvcTest(UserController::class)
 @Import(SecurityConfig::class)
 class UserControllerTest {
+
+    @Autowired
+    private lateinit var emailCodeService: EmailCodeService
 
     @Autowired
     lateinit var mockMvc: MockMvc
@@ -271,6 +275,56 @@ class UserControllerTest {
             )
 
                 .andExpect(status().isBadRequest)
+        }
+    }
+
+    @Nested
+    inner class DeleteTest {
+
+        @Test
+        @DisplayName("[200] 삭제 성공")
+        fun deleteSuccessTest() {
+            val request = UserDeleteRequest("delete-code")
+            doNothing().`when`(userService).delete(1, request)
+
+            mockMvc.perform(
+                MockMvcRequestBuilders
+                    .delete("/users/me")
+                    .header("user-id", 1)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+                .andExpect(status().isOk)
+        }
+
+        @Test
+        @DisplayName("[400] 삭제 실패 - 잘못된 인증 코드")
+        fun deleteFailureTestWithInvalidEmailCode() {
+            val request = UserDeleteRequest("delete-code")
+            given(userService.delete(1, request)).willThrow(InvalidEmailCodeException())
+
+            mockMvc.perform(
+                MockMvcRequestBuilders
+                    .delete("/users/me")
+                    .header("user-id", 1)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+                .andExpect(status().isBadRequest)
+        }
+
+        @Test
+        @DisplayName("[404] 삭제 후 계정 조회 테스트")
+        fun findDeletedUserFailureTest() {
+            given(userService.findById(1)).willThrow(NotFoundException("Could not find user"))
+
+            mockMvc.perform(
+                MockMvcRequestBuilders
+                    .get("/users/1")
+                    .header("user-id", 1)
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+                .andExpect(status().isNotFound)
         }
     }
 }

@@ -21,17 +21,8 @@ spring:
         - id: user-service-auth
           uri: lb://USER-SERVICE
           predicates:
-            - Path=/user-service/users/**
-            - Method=GET
-          filters:
-            - RemoveRequestHeader=Cookie
-            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
-            - JwtAuthGatewayFilter
-        - id: user-service-patch
-          uri: lb://USER-SERVICE
-          predicates:
             - Path=/user-service/users/me/**
-            - Method=PATCH
+            - Method=PATCH, DELETE
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}

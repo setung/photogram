@@ -37,4 +37,9 @@ class UserController(
     @PatchMapping("/me/password")
     fun updatePassword(@RequestBody request: PasswordUpdateRequest, @LoginUser userId: Long) =
         ResponseEntity(userService.updatePassword(userId, request), HttpStatus.OK)
+
+    @DeleteMapping("/me")
+    fun delete(@RequestBody request: UserDeleteRequest, @LoginUser userId: Long) =
+        ResponseEntity(userService.delete(userId, request), HttpStatus.OK)
+
 }
