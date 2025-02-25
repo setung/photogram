@@ -12,7 +12,6 @@ import com.setung.userservice.error.NotFoundException
 import com.setung.userservice.repo.UserRepository
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 
 @Service
 class UserService(
@@ -52,25 +51,29 @@ class UserService(
         return jwtProvider.createToken(user.id!!)
     }
 
-    @Transactional
     fun update(id: Long, request: UserUpdateRequest) {
-        findById(id).update(request)
+        val user = findById(id)
+        user.update(request)
+        userRepository.save(user)
     }
 
-    @Transactional
     fun updatePassword(id: Long, request: PasswordUpdateRequest) {
         val user = findById(id)
         val encryptedPassword = passwordEncoder.encode(request.password)
         emailCodeService.verifyEmailCode(user.email, request.code, EmailCodeType.PASSWORD_RESET)
 
         user.updatePassword(encryptedPassword)
+
+        userRepository.save(user)
     }
 
-    @Transactional
     fun delete(id: Long, request: UserDeleteRequest) {
         val user = findById(id)
         emailCodeService.verifyEmailCode(user.email, request.code, EmailCodeType.ACCOUNT_DELETE)
+
         user.delete()
+
+        userRepository.save(user)
     }
 
     fun findMe(id: Long) =
