@@ -1,43 +1,24 @@
 package com.setung.userservice.controller
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.setung.userservice.config.SecurityConfig
 import com.setung.userservice.dto.*
 import com.setung.userservice.entity.EmailCodeType
 import com.setung.userservice.error.*
-import com.setung.userservice.service.EmailCodeService
 import com.setung.userservice.service.UserService
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.BDDMockito.doNothing
 import org.mockito.BDDMockito.given
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.context.annotation.Import
+import org.mockito.Mockito
 import org.springframework.http.MediaType
-import org.springframework.test.context.bean.override.mockito.MockitoBean
-import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
 
-@WebMvcTest(UserController::class)
-@Import(SecurityConfig::class)
-class UserControllerTest {
+class UserControllerTest : AbstractControllerTest() {
 
-    @Autowired
-    private lateinit var emailCodeService: EmailCodeService
-
-    @Autowired
-    lateinit var mockMvc: MockMvc
-
-    @Autowired
-    lateinit var objectMapper: ObjectMapper
-
-    @MockitoBean
-    lateinit var userService: UserService
+    var userService: UserService = Mockito.mock()
 
     @Nested
     inner class SignUpTest {
@@ -48,7 +29,7 @@ class UserControllerTest {
             val request = UserSignupRequest("test@example.com", "password", "password", "code")
             given(userService.signup(request)).willReturn(1L)
 
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .post("/users/signup")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -65,7 +46,7 @@ class UserControllerTest {
                 UserSignupRequest("duplicated@example.com", "password", "password", "code")
             given(userService.signup(request)).willThrow(DuplicateEmailException("duplicated email"))
 
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .post("/users/signup")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -80,7 +61,7 @@ class UserControllerTest {
             val request = UserSignupRequest("duplicated@example.com", "name", "", "code")
             given(userService.signup(request)).willThrow(DuplicateEmailException("blank password"))
 
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .post("/users/signup")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -96,7 +77,7 @@ class UserControllerTest {
                 UserSignupRequest("duplicated@example.com", "password", "password", "wrong-code")
             given(userService.signup(request)).willThrow(NotFoundRedisDataException("not found key"))
 
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .post("/users/signup")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -112,7 +93,7 @@ class UserControllerTest {
                 UserSignupRequest("duplicated@example.com", "password", "password", "wrong-code")
             given(userService.signup(request)).willThrow(InvalidEmailCodeException())
 
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .post("/users/signup")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -130,7 +111,7 @@ class UserControllerTest {
             val request = SendEmailCodeRequest("test@example.com", EmailCodeType.SIGNUP)
             doNothing().`when`(userService).sendEmailCode(request)
 
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .post("/users/emails/send-code")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -149,7 +130,7 @@ class UserControllerTest {
             val request = LoginRequest("test@test.com", "1234")
             given(userService.login(request)).willReturn("jwt-token")
 
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .post("/users/login")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -166,7 +147,7 @@ class UserControllerTest {
             val request = LoginRequest("no_joined@test.com", "1234")
             given(userService.login(request)).willThrow(NotFoundException("not found email"))
 
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .post("/users/login")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -182,7 +163,7 @@ class UserControllerTest {
             val request = LoginRequest("Wrong_password@test.com", "1234")
             given(userService.login(request)).willThrow(InvalidPasswordException())
 
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .post("/users/login")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -202,7 +183,7 @@ class UserControllerTest {
             val request = UserUpdateRequest("name", "biography", false)
             doNothing().`when`(userService).update(1L, request)
 
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .patch("/users/me")
                     .header("user-id", 1)
@@ -219,7 +200,7 @@ class UserControllerTest {
             val request = UserUpdateRequest("name", "biography", false)
             doNothing().`when`(userService).update(1L, request)
 
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .patch("/users/me")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -235,7 +216,7 @@ class UserControllerTest {
             val request = PasswordUpdateRequest("password", "code")
             doNothing().`when`(userService).updatePassword(1, request)
 
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .patch("/users/me/password")
                     .header("user-id", 1)
@@ -252,7 +233,7 @@ class UserControllerTest {
             val request = PasswordUpdateRequest("password", "code")
             doNothing().`when`(userService).updatePassword(1, request)
 
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .patch("/users/me/password")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -267,7 +248,7 @@ class UserControllerTest {
         fun passwordUpdateFailureT2estWithoutUserIdHeaderTest() {
             val request = PasswordUpdateRequest("password", "wrong-code")
             given(userService.updatePassword(1, request)).willThrow(InvalidEmailCodeException())
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .patch("/users/me/password")
                     .header("user-id", 1)
@@ -288,7 +269,7 @@ class UserControllerTest {
             val request = UserDeleteRequest("delete-code")
             doNothing().`when`(userService).delete(1, request)
 
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .delete("/users/me")
                     .header("user-id", 1)
@@ -304,7 +285,7 @@ class UserControllerTest {
             val request = UserDeleteRequest("delete-code")
             given(userService.delete(1, request)).willThrow(InvalidEmailCodeException())
 
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .delete("/users/me")
                     .header("user-id", 1)
@@ -319,7 +300,7 @@ class UserControllerTest {
         fun findDeletedUserFailureTest() {
             given(userService.findUser(1)).willThrow(NotFoundException("Could not find user"))
 
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .get("/users/1")
                     .header("user-id", 1)
@@ -346,7 +327,7 @@ class UserControllerTest {
                 )
             )
 
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .get("/users/me")
                     .header("user-id", 1)
@@ -358,7 +339,7 @@ class UserControllerTest {
         @Test
         @DisplayName("[401] 자신 조회 - userId 헤더 없음")
         fun findMeFailureTestWithoutUserIdHeader() {
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .get("/users/me")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -380,7 +361,7 @@ class UserControllerTest {
                 )
             )
 
-            mockMvc.perform(
+            mockMvc().perform(
                 MockMvcRequestBuilders
                     .get("/users/1")
                     .contentType(MediaType.APPLICATION_JSON)
@@ -389,4 +370,6 @@ class UserControllerTest {
         }
 
     }
+
+    override fun getController() = UserController(userService)
 }
