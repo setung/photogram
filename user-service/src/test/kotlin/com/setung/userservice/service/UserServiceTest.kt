@@ -17,7 +17,11 @@ import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.http.MediaType
+import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.crypto.password.PasswordEncoder
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 
@@ -209,5 +213,32 @@ class UserServiceTest @Autowired constructor(
             assertThat(user.email).isNull()
         }
 
+    }
+
+    @Nested
+    inner class ProfileImageTest {
+
+        @Test
+        fun uploadProfileImageSuccessTest() {
+            val mockFile = MockMultipartFile(
+                "file", "test-image.jpg", MediaType.IMAGE_JPEG_VALUE, "test image content".toByteArray()
+            )
+            userService.uploadProfileImage(9, mockFile)
+
+            val user = userService.findById(9)
+            assertNotNull(user.profileImage)
+        }
+
+        @Test
+        fun deleteProfileImageSuccessTest() {
+            val mockFile = MockMultipartFile(
+                "file", "test-image.jpg", MediaType.IMAGE_JPEG_VALUE, "test image content".toByteArray()
+            )
+            userService.uploadProfileImage(9, mockFile)
+            userService.deleteProfileImage(9)
+
+            val user = userService.findById(9)
+            assertNull(user.profileImage)
+        }
     }
 }
