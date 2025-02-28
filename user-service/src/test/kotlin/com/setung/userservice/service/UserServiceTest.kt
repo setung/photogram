@@ -219,6 +219,7 @@ class UserServiceTest @Autowired constructor(
     inner class ProfileImageTest {
 
         @Test
+        @DisplayName("프로필 이미지 등록 성공 테스트")
         fun uploadProfileImageSuccessTest() {
             val mockFile = MockMultipartFile(
                 "file", "test-image.jpg", MediaType.IMAGE_JPEG_VALUE, "test image content".toByteArray()
@@ -230,6 +231,7 @@ class UserServiceTest @Autowired constructor(
         }
 
         @Test
+        @DisplayName("프로필 이미지 삭제 성공 테스트")
         fun deleteProfileImageSuccessTest() {
             val mockFile = MockMultipartFile(
                 "file", "test-image.jpg", MediaType.IMAGE_JPEG_VALUE, "test image content".toByteArray()
