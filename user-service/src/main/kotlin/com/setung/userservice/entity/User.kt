@@ -22,7 +22,10 @@ class User(
 
     var biography: String?,
 
-    var isPrivate: Boolean
+    var isPrivate: Boolean,
+
+    @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true)
+    var profileImage: ProfileImage? = null
 
 ) : BaseEntity() {
 
@@ -38,6 +41,14 @@ class User(
 
     fun delete() {
         status = UserStatus.DELETED
+    }
+
+    fun uploadProfileImage(profileImage: ProfileImage) {
+        this.profileImage = profileImage
+    }
+
+    fun deleteProfileImage() {
+        this.profileImage = null
     }
 
     companion object {

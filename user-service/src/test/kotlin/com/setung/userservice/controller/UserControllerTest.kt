@@ -11,6 +11,7 @@ import org.mockito.BDDMockito.doNothing
 import org.mockito.BDDMockito.given
 import org.mockito.Mockito
 import org.springframework.http.MediaType
+import org.springframework.mock.web.MockMultipartFile
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -30,29 +31,19 @@ class UserControllerTest : AbstractControllerTest() {
             given(userService.signup(request)).willReturn(1L)
 
             mockMvc().perform(
-                MockMvcRequestBuilders
-                    .post("/users/signup")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-            )
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$").value(1L))
+                MockMvcRequestBuilders.post("/users/signup").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(request))
+            ).andExpect(status().isOk).andExpect(jsonPath("$").value(1L))
         }
 
         @Test
         @DisplayName("회원가입 실패 - 이메일 중복")
         fun signUpFailDuplicateEmail() {
-            val request =
-                UserSignupRequest("duplicated@example.com", "password", "password", "code")
+            val request = UserSignupRequest("duplicated@example.com", "password", "password", "code")
             given(userService.signup(request)).willThrow(DuplicateEmailException("duplicated email"))
 
             mockMvc().perform(
-                MockMvcRequestBuilders
-                    .post("/users/signup")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-            )
-                .andExpect(status().isConflict)
+                MockMvcRequestBuilders.post("/users/signup").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(request))
+            ).andExpect(status().isConflict)
         }
 
         @Test
@@ -62,44 +53,30 @@ class UserControllerTest : AbstractControllerTest() {
             given(userService.signup(request)).willThrow(DuplicateEmailException("blank password"))
 
             mockMvc().perform(
-                MockMvcRequestBuilders
-                    .post("/users/signup")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-            )
-                .andExpect(status().isBadRequest)
+                MockMvcRequestBuilders.post("/users/signup").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(request))
+            ).andExpect(status().isBadRequest)
         }
 
         @Test
         @DisplayName("회원가입 실패 - 생성되지 않은 입력 코드로 시도")
         fun signUpFailInvalidCode() {
-            val request =
-                UserSignupRequest("duplicated@example.com", "password", "password", "wrong-code")
+            val request = UserSignupRequest("duplicated@example.com", "password", "password", "wrong-code")
             given(userService.signup(request)).willThrow(NotFoundRedisDataException("not found key"))
 
             mockMvc().perform(
-                MockMvcRequestBuilders
-                    .post("/users/signup")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-            )
-                .andExpect(status().isNotFound)
+                MockMvcRequestBuilders.post("/users/signup").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(request))
+            ).andExpect(status().isNotFound)
         }
 
         @Test
         @DisplayName("회원가입 실패 - 인증 코드 다름")
         fun signUpFailMismatchedCode() {
-            val request =
-                UserSignupRequest("duplicated@example.com", "password", "password", "wrong-code")
+            val request = UserSignupRequest("duplicated@example.com", "password", "password", "wrong-code")
             given(userService.signup(request)).willThrow(InvalidEmailCodeException())
 
             mockMvc().perform(
-                MockMvcRequestBuilders
-                    .post("/users/signup")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
-            )
-                .andExpect(status().isBadRequest)
+                MockMvcRequestBuilders.post("/users/signup").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(request))
+            ).andExpect(status().isBadRequest)
         }
     }
 
@@ -112,12 +89,9 @@ class UserControllerTest : AbstractControllerTest() {
             doNothing().`when`(userService).sendEmailCode(request)
 
             mockMvc().perform(
-                MockMvcRequestBuilders
-                    .post("/users/emails/send-code")
-                    .contentType(MediaType.APPLICATION_JSON)
+                MockMvcRequestBuilders.post("/users/emails/send-code").contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
-            )
-                .andExpect(status().isOk)
+            ).andExpect(status().isOk)
         }
     }
 
@@ -131,14 +105,10 @@ class UserControllerTest : AbstractControllerTest() {
             given(userService.login(request)).willReturn("jwt-token")
 
             mockMvc().perform(
-                MockMvcRequestBuilders
-                    .post("/users/login")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
+                MockMvcRequestBuilders.post("/users/login").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(request))
             )
 
-                .andExpect(status().isOk)
-                .andExpect(jsonPath("$").value("jwt-token"))
+                .andExpect(status().isOk).andExpect(jsonPath("$").value("jwt-token"))
         }
 
         @Test
@@ -148,10 +118,7 @@ class UserControllerTest : AbstractControllerTest() {
             given(userService.login(request)).willThrow(NotFoundException("not found email"))
 
             mockMvc().perform(
-                MockMvcRequestBuilders
-                    .post("/users/login")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
+                MockMvcRequestBuilders.post("/users/login").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(request))
             )
 
                 .andExpect(status().isNotFound)
@@ -164,10 +131,7 @@ class UserControllerTest : AbstractControllerTest() {
             given(userService.login(request)).willThrow(InvalidPasswordException())
 
             mockMvc().perform(
-                MockMvcRequestBuilders
-                    .post("/users/login")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
+                MockMvcRequestBuilders.post("/users/login").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(request))
             )
 
                 .andExpect(status().isUnauthorized)
@@ -184,10 +148,7 @@ class UserControllerTest : AbstractControllerTest() {
             doNothing().`when`(userService).update(1L, request)
 
             mockMvc().perform(
-                MockMvcRequestBuilders
-                    .patch("/users/me")
-                    .header("user-id", 1)
-                    .contentType(MediaType.APPLICATION_JSON)
+                MockMvcRequestBuilders.patch("/users/me").header("user-id", 1).contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
             )
 
@@ -201,10 +162,7 @@ class UserControllerTest : AbstractControllerTest() {
             doNothing().`when`(userService).update(1L, request)
 
             mockMvc().perform(
-                MockMvcRequestBuilders
-                    .patch("/users/me")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request))
+                MockMvcRequestBuilders.patch("/users/me").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(request))
             )
 
                 .andExpect(status().isUnauthorized)
@@ -217,10 +175,7 @@ class UserControllerTest : AbstractControllerTest() {
             doNothing().`when`(userService).updatePassword(1, request)
 
             mockMvc().perform(
-                MockMvcRequestBuilders
-                    .patch("/users/me/password")
-                    .header("user-id", 1)
-                    .contentType(MediaType.APPLICATION_JSON)
+                MockMvcRequestBuilders.patch("/users/me/password").header("user-id", 1).contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
             )
 
@@ -234,9 +189,7 @@ class UserControllerTest : AbstractControllerTest() {
             doNothing().`when`(userService).updatePassword(1, request)
 
             mockMvc().perform(
-                MockMvcRequestBuilders
-                    .patch("/users/me/password")
-                    .contentType(MediaType.APPLICATION_JSON)
+                MockMvcRequestBuilders.patch("/users/me/password").contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
             )
 
@@ -249,10 +202,7 @@ class UserControllerTest : AbstractControllerTest() {
             val request = PasswordUpdateRequest("password", "wrong-code")
             given(userService.updatePassword(1, request)).willThrow(InvalidEmailCodeException())
             mockMvc().perform(
-                MockMvcRequestBuilders
-                    .patch("/users/me/password")
-                    .header("user-id", 1)
-                    .contentType(MediaType.APPLICATION_JSON)
+                MockMvcRequestBuilders.patch("/users/me/password").header("user-id", 1).contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
             )
 
@@ -270,13 +220,9 @@ class UserControllerTest : AbstractControllerTest() {
             doNothing().`when`(userService).delete(1, request)
 
             mockMvc().perform(
-                MockMvcRequestBuilders
-                    .delete("/users/me")
-                    .header("user-id", 1)
-                    .contentType(MediaType.APPLICATION_JSON)
+                MockMvcRequestBuilders.delete("/users/me").header("user-id", 1).contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
-            )
-                .andExpect(status().isOk)
+            ).andExpect(status().isOk)
         }
 
         @Test
@@ -286,13 +232,9 @@ class UserControllerTest : AbstractControllerTest() {
             given(userService.delete(1, request)).willThrow(InvalidEmailCodeException())
 
             mockMvc().perform(
-                MockMvcRequestBuilders
-                    .delete("/users/me")
-                    .header("user-id", 1)
-                    .contentType(MediaType.APPLICATION_JSON)
+                MockMvcRequestBuilders.delete("/users/me").header("user-id", 1).contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
-            )
-                .andExpect(status().isBadRequest)
+            ).andExpect(status().isBadRequest)
         }
 
         @Test
@@ -301,12 +243,8 @@ class UserControllerTest : AbstractControllerTest() {
             given(userService.findUser(1)).willThrow(NotFoundException("Could not find user"))
 
             mockMvc().perform(
-                MockMvcRequestBuilders
-                    .get("/users/1")
-                    .header("user-id", 1)
-                    .contentType(MediaType.APPLICATION_JSON)
-            )
-                .andExpect(status().isNotFound)
+                MockMvcRequestBuilders.get("/users/1").header("user-id", 1).contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().isNotFound)
         }
     }
 
@@ -328,23 +266,16 @@ class UserControllerTest : AbstractControllerTest() {
             )
 
             mockMvc().perform(
-                MockMvcRequestBuilders
-                    .get("/users/me")
-                    .header("user-id", 1)
-                    .contentType(MediaType.APPLICATION_JSON)
-            )
-                .andExpect(status().isOk)
+                MockMvcRequestBuilders.get("/users/me").header("user-id", 1).contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().isOk)
         }
 
         @Test
         @DisplayName("[401] 자신 조회 - userId 헤더 없음")
         fun findMeFailureTestWithoutUserIdHeader() {
             mockMvc().perform(
-                MockMvcRequestBuilders
-                    .get("/users/me")
-                    .contentType(MediaType.APPLICATION_JSON)
-            )
-                .andExpect(status().isUnauthorized)
+                MockMvcRequestBuilders.get("/users/me").contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().isUnauthorized)
         }
 
         @Test
@@ -362,13 +293,46 @@ class UserControllerTest : AbstractControllerTest() {
             )
 
             mockMvc().perform(
+                MockMvcRequestBuilders.get("/users/1").contentType(MediaType.APPLICATION_JSON)
+            ).andExpect(status().isOk)
+        }
+
+    }
+
+    @Nested
+    inner class ProfileImageTest {
+
+        @Test
+        @DisplayName("[200] 프로필 이미지 업로드")
+        fun uploadProfileImageTest() {
+            val mockFile = MockMultipartFile(
+                "file", "test-image.jpg", MediaType.IMAGE_JPEG_VALUE, "test image content".toByteArray()
+            )
+
+            doNothing().`when`(userService).uploadProfileImage(1, mockFile)
+
+            mockMvc().perform(
                 MockMvcRequestBuilders
-                    .get("/users/1")
-                    .contentType(MediaType.APPLICATION_JSON)
+                    .multipart("/users/me/profile-image")
+                    .file(mockFile)
+                    .header("user-id", 1L)
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
             )
                 .andExpect(status().isOk)
         }
 
+        @Test
+        @DisplayName("[200] 프로필 이미지 삭제")
+        fun deleteProfileImageTest() {
+            doNothing().`when`(userService).deleteProfileImage(1)
+
+            mockMvc().perform(
+                MockMvcRequestBuilders
+                    .delete("/users/me/profile-image")
+                    .header("user-id", 1L)
+            )
+                .andExpect(status().isOk)
+        }
     }
 
     override fun getController() = UserController(userService)
