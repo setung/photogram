@@ -17,7 +17,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDateTime
 
-class UserControllerTest : AbstractControllerTest() {
+class UserEntityControllerTest : AbstractControllerTest() {
 
     var userService: UserService = Mockito.mock()
 

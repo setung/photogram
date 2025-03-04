@@ -6,7 +6,7 @@ import com.setung.userservice.client.FileClient
 import com.setung.userservice.dto.*
 import com.setung.userservice.entity.EmailCodeType
 import com.setung.userservice.entity.ProfileImage
-import com.setung.userservice.entity.User
+import com.setung.userservice.entity.UserEntity
 import com.setung.userservice.entity.UserStatus
 import com.setung.userservice.error.DuplicateEmailException
 import com.setung.userservice.error.InvalidPasswordException
@@ -38,7 +38,7 @@ class UserService(
 
         emailCodeService.verifyEmailCode(request.email, request.code, EmailCodeType.SIGNUP)
 
-        val user: User = User.of(request, passwordEncoder.encode(request.password))
+        val user: UserEntity = UserEntity.of(request, passwordEncoder.encode(request.password))
 
         return userRepository.save(user).id ?: throw IllegalStateException("Failed to save user")
     }

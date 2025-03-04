@@ -7,26 +7,28 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
+@RequestMapping("/follows")
 class FollowController(
     private val followService: FollowService
 ) {
 
-    @PostMapping("users/{followingId}/follow")
-    fun follow(@LoginUser loginUserId: Long, @PathVariable followingId: Long) =
-        ResponseEntity(followService.follow(loginUserId, followingId), HttpStatus.OK)
+    @PostMapping("/{targetUserId}")
+    fun follow(@LoginUser loginUserId: Long, @PathVariable targetUserId: Long) =
+        ResponseEntity(followService.follow(loginUserId, targetUserId), HttpStatus.OK)
 
-    @PostMapping("/follows/{followId}/accept")
+    @PostMapping("/{followId}/accept")
     fun acceptFollow(@LoginUser loginUserId: Long, @PathVariable followId: Long) =
         ResponseEntity(followService.acceptFollow(loginUserId, followId), HttpStatus.OK)
 
-    @PostMapping("/follows/{followId}/reject")
+    @PostMapping("/{followId}/reject")
     fun rejectFollow(@LoginUser loginUserId: Long, @PathVariable followId: Long) =
         ResponseEntity(followService.rejectFollow(loginUserId, followId), HttpStatus.OK)
 
-    @DeleteMapping("/follows/{followId}")
+    @DeleteMapping("/{followId}")
     fun cancelFollow(@LoginUser loginUserId: Long, @PathVariable followId: Long) =
         ResponseEntity(followService.deleteFollow(loginUserId, followId), HttpStatus.OK)
 

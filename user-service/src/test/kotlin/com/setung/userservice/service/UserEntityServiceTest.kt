@@ -27,7 +27,7 @@ import kotlin.test.assertTrue
 
 @SpringBootTest
 @Import(TestContainerConfig::class)
-class UserServiceTest @Autowired constructor(
+class UserEntityServiceTest @Autowired constructor(
     val emailCodeService: EmailCodeService,
     val userService: UserService,
     val userRepository: UserRepository
@@ -37,7 +37,7 @@ class UserServiceTest @Autowired constructor(
     private lateinit var passwordEncoder: PasswordEncoder
 
     @Nested
-    inner class UserSignupTest {
+    inner class UserEntitySignupTest {
 
         @Test
         @DisplayName("회원가입 성공 테스트")

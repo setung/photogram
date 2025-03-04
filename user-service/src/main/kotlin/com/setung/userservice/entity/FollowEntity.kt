@@ -3,17 +3,18 @@ package com.setung.userservice.entity
 import jakarta.persistence.*
 
 @Entity
-class Follow(
+@Table(name = "follow")
+class FollowEntity(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
     @ManyToOne
-    val requester: User,
+    val requester: UserEntity,
 
     @ManyToOne
-    val target: User,
+    val target: UserEntity,
 
     @Enumerated(value = EnumType.STRING)
     var status: FollowStatus

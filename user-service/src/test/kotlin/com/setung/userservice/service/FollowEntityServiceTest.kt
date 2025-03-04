@@ -14,12 +14,12 @@ import org.springframework.context.annotation.Import
 
 @SpringBootTest
 @Import(TestContainerConfig::class)
-class FollowServiceTest @Autowired constructor(
+class FollowEntityServiceTest @Autowired constructor(
     private val followService: FollowService
 ) {
 
     @Nested
-    inner class FollowTest {
+    inner class FollowEntityTest {
 
         @Test
         @DisplayName("공개 계정 팔로우 성공 테스트")

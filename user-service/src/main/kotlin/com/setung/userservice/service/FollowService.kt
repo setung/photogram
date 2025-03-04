@@ -1,6 +1,6 @@
 package com.setung.userservice.service
 
-import com.setung.userservice.entity.Follow
+import com.setung.userservice.entity.FollowEntity
 import com.setung.userservice.entity.FollowStatus
 import com.setung.userservice.error.*
 import com.setung.userservice.repo.FollowRepository
@@ -22,13 +22,13 @@ class FollowService(
         val status = if (target.isPrivate) FollowStatus.PENDING else FollowStatus.ACCEPTED
 
         return try {
-            followRepository.save(Follow(requester = requester, target = target, status = status)).id!!
+            followRepository.save(FollowEntity(requester = requester, target = target, status = status)).id!!
         } catch (ex: DataIntegrityViolationException) {
             throw DuplicationException("Follow already exists.")
         }
     }
 
-    fun findById(followId: Long): Follow =
+    fun findById(followId: Long): FollowEntity =
         followRepository.findById(followId).orElseThrow { NotFoundException("Could not find follow with id $followId") }
 
     fun acceptFollow(loginUserId: Long, followId: Long) {
