@@ -13,7 +13,8 @@ class GlobalExceptionHandler {
     @ExceptionHandler(
         MethodArgumentNotValidException::class,
         HttpMessageNotReadableException::class,
-        InvalidEmailCodeException::class
+        InvalidEmailCodeException::class,
+        BadRequestException::class
     )
     fun handleValidationException(ex: Exception): ResponseEntity<String> {
         return ResponseEntity(ex.message, HttpStatus.BAD_REQUEST)
@@ -38,5 +39,12 @@ class GlobalExceptionHandler {
     )
     fun unAuthorizationException(ex: Exception): ResponseEntity<String> {
         return ResponseEntity(ex.message, HttpStatus.UNAUTHORIZED)
+    }
+
+    @ExceptionHandler(
+        ForbiddenException::class,
+    )
+    fun forbiddenException(ex: Exception): ResponseEntity<String> {
+        return ResponseEntity(ex.message, HttpStatus.FORBIDDEN)
     }
 }

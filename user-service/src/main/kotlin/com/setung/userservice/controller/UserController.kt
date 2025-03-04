@@ -7,6 +7,7 @@ import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping("/users")
@@ -45,5 +46,13 @@ class UserController(
     @DeleteMapping("/me")
     fun delete(@RequestBody request: UserDeleteRequest, @LoginUser userId: Long) =
         ResponseEntity(userService.delete(userId, request), HttpStatus.OK)
+
+    @PostMapping("/me/profile-image")
+    fun uploadProfileImage(@LoginUser userId: Long, @RequestPart file: MultipartFile) =
+        ResponseEntity(userService.uploadProfileImage(userId, file), HttpStatus.OK)
+
+    @DeleteMapping("/me/profile-image")
+    fun deleteProfileImage(@LoginUser userId: Long) =
+        ResponseEntity(userService.deleteProfileImage(userId), HttpStatus.OK)
 
 }

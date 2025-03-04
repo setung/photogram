@@ -16,6 +16,10 @@ spring:
           uri: lb://USER-SERVICE
           predicates:
             - Path=
+              /user-service/users/*/follow,
+              /user-service/follows/*/accept,
+              /user-service/follows/*/reject,
+              /user-service/users/me/profile-image,
             - Method=POST
           filters:
             - RemoveRequestHeader=Cookie
@@ -35,7 +39,7 @@ spring:
         - id: user-service-private-delete
           uri: lb://USER-SERVICE
           predicates:
-            - Path=/user-service/users/me
+            - Path=/user-service/users/me, /user-service/follows/**, /user-service/users/me/profile-image,
             - Method=DELETE
           filters:
             - RemoveRequestHeader=Cookie

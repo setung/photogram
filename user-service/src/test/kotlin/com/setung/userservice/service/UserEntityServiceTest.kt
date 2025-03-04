@@ -17,13 +17,17 @@ import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
+import org.springframework.http.MediaType
+import org.springframework.mock.web.MockMultipartFile
 import org.springframework.security.crypto.password.PasswordEncoder
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 
 @SpringBootTest
 @Import(TestContainerConfig::class)
-class UserServiceTest @Autowired constructor(
+class UserEntityServiceTest @Autowired constructor(
     val emailCodeService: EmailCodeService,
     val userService: UserService,
     val userRepository: UserRepository
@@ -33,7 +37,7 @@ class UserServiceTest @Autowired constructor(
     private lateinit var passwordEncoder: PasswordEncoder
 
     @Nested
-    inner class UserSignupTest {
+    inner class UserEntitySignupTest {
 
         @Test
         @DisplayName("회원가입 성공 테스트")
@@ -209,5 +213,34 @@ class UserServiceTest @Autowired constructor(
             assertThat(user.email).isNull()
         }
 
+    }
+
+    @Nested
+    inner class ProfileImageTest {
+
+        @Test
+        @DisplayName("프로필 이미지 등록 성공 테스트")
+        fun uploadProfileImageSuccessTest() {
+            val mockFile = MockMultipartFile(
+                "file", "test-image.jpg", MediaType.IMAGE_JPEG_VALUE, "test image content".toByteArray()
+            )
+            userService.uploadProfileImage(9, mockFile)
+
+            val user = userService.findById(9)
+            assertNotNull(user.profileImage)
+        }
+
+        @Test
+        @DisplayName("프로필 이미지 삭제 성공 테스트")
+        fun deleteProfileImageSuccessTest() {
+            val mockFile = MockMultipartFile(
+                "file", "test-image.jpg", MediaType.IMAGE_JPEG_VALUE, "test image content".toByteArray()
+            )
+            userService.uploadProfileImage(9, mockFile)
+            userService.deleteProfileImage(9)
+
+            val user = userService.findById(9)
+            assertNull(user.profileImage)
+        }
     }
 }

@@ -2,16 +2,21 @@ package com.setung.userservice.service
 
 import com.setung.auth.jwt.JwtProvider
 import com.setung.userservice.client.EmailClient
+import com.setung.userservice.client.FileClient
 import com.setung.userservice.dto.*
 import com.setung.userservice.entity.EmailCodeType
-import com.setung.userservice.entity.User
+import com.setung.userservice.entity.ProfileImage
+import com.setung.userservice.entity.UserEntity
 import com.setung.userservice.entity.UserStatus
 import com.setung.userservice.error.DuplicateEmailException
 import com.setung.userservice.error.InvalidPasswordException
 import com.setung.userservice.error.NotFoundException
+import com.setung.userservice.repo.ProfileImageRepository
 import com.setung.userservice.repo.UserRepository
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.multipart.MultipartFile
 
 @Service
 class UserService(
@@ -19,7 +24,9 @@ class UserService(
     val passwordEncoder: PasswordEncoder,
     val emailCodeService: EmailCodeService,
     val emailService: EmailClient,
-    val jwtProvider: JwtProvider
+    val jwtProvider: JwtProvider,
+    val fileClient: FileClient,
+    val profileImageRepository: ProfileImageRepository
 ) {
 
     fun signup(request: UserSignupRequest): Long {
@@ -31,7 +38,7 @@ class UserService(
 
         emailCodeService.verifyEmailCode(request.email, request.code, EmailCodeType.SIGNUP)
 
-        val user: User = User.of(request, passwordEncoder.encode(request.password))
+        val user: UserEntity = UserEntity.of(request, passwordEncoder.encode(request.password))
 
         return userRepository.save(user).id ?: throw IllegalStateException("Failed to save user")
     }
@@ -85,4 +92,22 @@ class UserService(
     fun findById(id: Long) =
         userRepository.findByIdAndStatus(id, UserStatus.NORMAL)
             ?: throw NotFoundException("Could not find user with id ${id}")
+
+    @Transactional
+    fun uploadProfileImage(userId: Long, image: MultipartFile) {
+        val url = fileClient.upload(image)
+        val profileImage = profileImageRepository.save(ProfileImage(url = url, fileName = image.originalFilename!!))
+        val user = findById(userId)
+
+        user.uploadProfileImage(profileImage)
+    }
+
+    @Transactional
+    fun deleteProfileImage(userId: Long) {
+        val user = findById(userId)
+        if (user.profileImage != null) {
+            fileClient.delete(user.profileImage!!.url)
+            user.deleteProfileImage()
+        }
+    }
 }
