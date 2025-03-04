@@ -23,7 +23,7 @@ class FollowControllerTest : AbstractControllerTest() {
 
         mockMvc().perform(
             MockMvcRequestBuilders
-                .post("/users/{userId}/follow", 2)
+                .post("/follows/{targetUserId}", 2)
                 .header("user-id", 1)
         )
             .andExpect(status().isOk)
@@ -37,7 +37,7 @@ class FollowControllerTest : AbstractControllerTest() {
 
         mockMvc().perform(
             MockMvcRequestBuilders
-                .post("/users/{userId}/follow", 1)
+                .post("/follows/{targetUserId}", 1)
                 .header("user-id", 1)
         )
             .andExpect(status().isBadRequest)

@@ -5,7 +5,8 @@ import com.setung.dto.UserUpdateRequest
 import jakarta.persistence.*
 
 @Entity
-class User(
+@Table(name = "user")
+class UserEntity(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,7 +53,7 @@ class User(
     }
 
     companion object {
-        fun of(request: UserSignupRequest, encryptedPassword: String) = User(
+        fun of(request: UserSignupRequest, encryptedPassword: String) = UserEntity(
             id = null,
             name = request.name,
             email = request.email,

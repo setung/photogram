@@ -1,6 +1,6 @@
 package com.setung.repo
 
-import com.setung.entity.Follow
+import com.setung.entity.FollowEntity
 import org.springframework.data.jpa.repository.JpaRepository
 
-interface FollowRepository : JpaRepository<Follow, Long>
+interface FollowRepository : JpaRepository<FollowEntity, Long>

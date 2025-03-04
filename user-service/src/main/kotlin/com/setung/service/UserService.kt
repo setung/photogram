@@ -4,7 +4,7 @@ import com.setung.auth.jwt.JwtProvider
 import com.setung.dto.*
 import com.setung.entity.EmailCodeType
 import com.setung.entity.ProfileImage
-import com.setung.entity.User
+import com.setung.entity.UserEntity
 import com.setung.entity.UserStatus
 import com.setung.error.DuplicateEmailException
 import com.setung.error.InvalidPasswordException
@@ -38,7 +38,7 @@ class UserService(
 
         emailCodeService.verifyEmailCode(request.email, request.code, EmailCodeType.SIGNUP)
 
-        val user: User = User.of(request, passwordEncoder.encode(request.password))
+        val user: UserEntity = UserEntity.of(request, passwordEncoder.encode(request.password))
 
         return userRepository.save(user).id ?: throw IllegalStateException("Failed to save user")
     }

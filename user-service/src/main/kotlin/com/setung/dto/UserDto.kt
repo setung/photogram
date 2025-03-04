@@ -1,6 +1,6 @@
 package com.setung.dto
 
-import com.setung.entity.User
+import com.setung.entity.UserEntity
 import java.time.LocalDateTime
 
 data class UserDto(
@@ -13,10 +13,10 @@ data class UserDto(
 ) {
     companion object {
 
-        fun of(user: User) =
+        fun of(user: UserEntity) =
             if (user.isPrivate) ofPrivateUser(user) else ofPublicUser(user)
 
-        fun ofPublicUser(user: User) = UserDto(
+        fun ofPublicUser(user: UserEntity) = UserDto(
             id = user.id!!,
             email = user.email,
             name = user.name,
@@ -25,7 +25,7 @@ data class UserDto(
             updatedAt = user.updatedAt
         )
 
-        fun ofPrivateUser(user: User) = UserDto(
+        fun ofPrivateUser(user: UserEntity) = UserDto(
             id = user.id!!,
             name = user.name,
             email = null,

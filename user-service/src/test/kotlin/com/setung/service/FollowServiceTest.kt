@@ -19,7 +19,7 @@ class FollowServiceTest @Autowired constructor(
 ) {
 
     @Nested
-    inner class FollowTest {
+    inner class FollowEntityTest {
 
         @Test
         @DisplayName("공개 계정 팔로우 성공 테스트")
