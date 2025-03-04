@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.time.LocalDateTime
 
 @WebMvcTest(UserController::class)
 @Import(SecurityConfig::class)
@@ -316,7 +317,7 @@ class UserControllerTest {
         @Test
         @DisplayName("[404] 삭제 후 계정 조회 테스트")
         fun findDeletedUserFailureTest() {
-            given(userService.findById(1)).willThrow(NotFoundException("Could not find user"))
+            given(userService.findUser(1)).willThrow(NotFoundException("Could not find user"))
 
             mockMvc.perform(
                 MockMvcRequestBuilders
@@ -326,5 +327,66 @@ class UserControllerTest {
             )
                 .andExpect(status().isNotFound)
         }
+    }
+
+    @Nested
+    inner class FindTest {
+
+        @Test
+        @DisplayName("[200] 자신 조회")
+        fun findMeTest() {
+            given(userService.findMe(1)).willReturn(
+                UserDto(
+                    id = 1L,
+                    name = "name",
+                    email = "tester@test.com",
+                    biography = "biography",
+                    createdAt = LocalDateTime.now(),
+                    updatedAt = LocalDateTime.now()
+                )
+            )
+
+            mockMvc.perform(
+                MockMvcRequestBuilders
+                    .get("/users/me")
+                    .header("user-id", 1)
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+                .andExpect(status().isOk)
+        }
+
+        @Test
+        @DisplayName("[401] 자신 조회 - userId 헤더 없음")
+        fun findMeFailureTestWithoutUserIdHeader() {
+            mockMvc.perform(
+                MockMvcRequestBuilders
+                    .get("/users/me")
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+                .andExpect(status().isUnauthorized)
+        }
+
+        @Test
+        @DisplayName("[200] 유저 조회")
+        fun findUserTest() {
+            given(userService.findUser(1)).willReturn(
+                UserDto(
+                    id = 1L,
+                    name = "name",
+                    email = "tester@test.com",
+                    biography = "biography",
+                    createdAt = LocalDateTime.now(),
+                    updatedAt = LocalDateTime.now()
+                )
+            )
+
+            mockMvc.perform(
+                MockMvcRequestBuilders
+                    .get("/users/1")
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+                .andExpect(status().isOk)
+        }
+
     }
 }

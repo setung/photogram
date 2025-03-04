@@ -41,10 +41,6 @@ class UserService(
         emailService.send(request.email, code)
     }
 
-    fun findById(id: Long): User =
-        userRepository.findByIdAndStatus(id, UserStatus.NORMAL)
-            ?: throw NotFoundException("Could not find user with id ${id}")
-
     fun login(request: LoginRequest): String {
         val user = userRepository.findByEmailAndStatus(request.email, UserStatus.NORMAL)
             ?: throw NotFoundException("Could not find user with email ${request.email}")
@@ -80,4 +76,13 @@ class UserService(
         userRepository.save(user)
     }
 
+    fun findMe(id: Long) =
+        UserDto.ofPublicUser(findById(id))
+
+    fun findUser(id: Long) =
+        UserDto.of(findById(id))
+
+    fun findById(id: Long) =
+        userRepository.findByIdAndStatus(id, UserStatus.NORMAL)
+            ?: throw NotFoundException("Could not find user with id ${id}")
 }

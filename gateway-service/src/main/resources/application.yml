@@ -1,32 +1,24 @@
 server:
   port: 8000
-
 spring:
   config:
+    import:
+      - classpath:/users/user-service-routes.yml
     activate:
       on-profile: default
   application:
     name: apigateway-service
-  cloud:
-    gateway:
-      routes:
-        - id: user-service-public
-          uri: lb://USER-SERVICE
-          predicates:
-            - Path=/user-service/users/signup, /user-service/users/emails/send-code, /user-service/users/login
-            - Method=POST
-          filters:
-            - RemoveRequestHeader=Cookie
-            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
-        - id: user-service-auth
-          uri: lb://USER-SERVICE
-          predicates:
-            - Path=/user-service/users/me/**
-            - Method=PATCH, DELETE
-          filters:
-            - RemoveRequestHeader=Cookie
-            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
-            - JwtAuthGatewayFilter
+
+
 jwt:
   secret: 9F8xvM1QK5Pj1W7RZyG+2tOQVp3X6LbBgNT9aFovRj0=
   expiration: 3600000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: gateway
+  endpoint:
+    gateway:
+      access: read_only

@@ -178,4 +178,36 @@ class UserServiceTest @Autowired constructor(
         }
     }
 
+    @Nested
+    inner class FindTest {
+
+        @Test
+        @DisplayName("자신 조회 - public")
+        fun findMePublicTest() {
+            val user = userService.findMe(5)
+            assertThat(user.email).isNotNull()
+        }
+
+        @Test
+        @DisplayName("자신 조회 - private 상태도 정상으로 조회 가능")
+        fun findMePrivateTest() {
+            val user = userService.findMe(6)
+            assertThat(user.email).isNotNull()
+        }
+
+        @Test
+        @DisplayName("유저 조회 - public")
+        fun findUserPublicTest() {
+            val user = userService.findUser(5)
+            assertThat(user.email).isNotNull()
+        }
+
+        @Test
+        @DisplayName("유저 조회 - private")
+        fun findUserPrivateTest() {
+            val user = userService.findUser(6)
+            assertThat(user.email).isNull()
+        }
+
+    }
 }
