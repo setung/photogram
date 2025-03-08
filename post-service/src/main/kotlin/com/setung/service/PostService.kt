@@ -2,7 +2,9 @@ package com.setung.service
 
 import com.setung.dto.PostUploadRequest
 import com.setung.entity.PostEntity
+import com.setung.entity.PostStatus
 import com.setung.entity.TagEntity
+import com.setung.error.ForbiddenException
 import com.setung.error.NotFoundException
 import com.setung.file.FileClient
 import com.setung.repo.PostRepository
@@ -29,6 +31,16 @@ class PostService(
     }
 
     fun findById(postId: Long) =
-        postRepository.findById(postId).orElseThrow { NotFoundException("Could not find post with id ${postId}") }
+        postRepository.findByIdAndStatus(postId, PostStatus.NORMAL)
+            ?: throw NotFoundException("Could not find post with id $postId")
 
+    fun delete(loginUserId: Long, postId: Long) {
+        val post = findById(postId)
+
+        if (post.writerId != loginUserId)
+            throw ForbiddenException("Could not delete another user's post. id: $postId")
+
+        post.delete()
+        postRepository.save(post)
+    }
 }

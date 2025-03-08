@@ -1,9 +1,11 @@
 package com.setung.controller
 
 import com.setung.dto.PostUploadRequest
+import com.setung.error.ForbiddenException
 import com.setung.service.PostService
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.mockito.BDDMockito.doNothing
 import org.mockito.BDDMockito.given
 import org.mockito.Mockito
 import org.springframework.http.MediaType
@@ -42,6 +44,31 @@ class PostControllerTest : AbstractControllerTest() {
             .andExpect(status().isOk)
     }
 
-    override fun getController(): Any = PostController(postService)
+    @Test
+    @DisplayName("[200] 삭제 성공 테스트")
+    fun deletePostSuccessTest() {
+        doNothing().`when`(postService).delete(1, 1)
 
+        mockMvc().perform(
+            MockMvcRequestBuilders
+                .delete("/posts/{postId}", 1)
+                .header("user-id", "1")
+        )
+            .andExpect(status().isOk)
+    }
+
+    @Test
+    @DisplayName("[403] 삭제 실패 테스트 - 다른 유저의 게시글 삭제 요청시 403 반환")
+    fun deletePostFailureTestWithOthers() {
+        given(postService.delete(1, 1)).willThrow(ForbiddenException::class.java)
+
+        mockMvc().perform(
+            MockMvcRequestBuilders
+                .delete("/posts/{postId}", 1)
+                .header("user-id", "1")
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    override fun getController(): Any = PostController(postService)
 }
