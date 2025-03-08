@@ -17,6 +17,10 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
+        jdbc:
+          batch_size: 200
   flyway:
-    enabled: false
+    enabled: true
     table: post_schema_history
+    baseline-on-migrate: true
+    baseline-version: 0

@@ -3,11 +3,13 @@ package com.setung.auth.jwt
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import java.util.*
 import javax.crypto.SecretKey
 
 @Component
+@ConditionalOnProperty(prefix = "jwt", name = ["enabled"], havingValue = "true", matchIfMissing = false)
 class JwtProvider(
     @Value(("\${jwt.secret}"))
     private val secretKey: String,
