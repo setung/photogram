@@ -1,5 +1,6 @@
 package com.setung.entity
 
+import com.setung.dto.PostUpdateRequest
 import com.setung.dto.PostUploadRequest
 import jakarta.persistence.*
 
@@ -28,6 +29,18 @@ class PostEntity(
 
     fun delete() {
         status = PostStatus.DELETED
+    }
+
+    fun update(request: PostUpdateRequest, newImages: List<String>, newTags: List<TagEntity>) {
+        contents = request.contents
+
+        images.removeIf { it.id in request.deletedImageIds }
+        images.addAll(newImages.map { PostImageEntity.of(this, it) })
+
+        val existingTagNames = postTags.map { it.tag.name }.toSet()
+        val uniqueTags = newTags.filter { it.name !in existingTagNames }
+        postTags.removeIf { it.id in request.deletedPostTagIds }
+        postTags.addAll(uniqueTags.map { PostTagEntity.of(this, it) })
     }
 
     companion object {

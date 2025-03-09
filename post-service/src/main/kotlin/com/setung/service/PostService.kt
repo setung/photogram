@@ -1,5 +1,6 @@
 package com.setung.service
 
+import com.setung.dto.PostUpdateRequest
 import com.setung.dto.PostUploadRequest
 import com.setung.entity.PostEntity
 import com.setung.entity.PostStatus
@@ -42,5 +43,20 @@ class PostService(
 
         post.delete()
         postRepository.save(post)
+    }
+
+    @Transactional
+    fun update(loginUserId: Long, postId: Long, request: PostUpdateRequest, images: List<MultipartFile>) {
+        val post = findById(postId)
+
+        if (post.writerId != loginUserId)
+            throw ForbiddenException("Could not delete another user's post. id: $postId")
+
+        val fileUrls = fileClient.upload(images)
+        val tags = request.newTags.map {
+            tagRepository.findByName(it) ?: tagRepository.save(TagEntity.of(it))
+        }
+
+        post.update(request, fileUrls, tags)
     }
 }
