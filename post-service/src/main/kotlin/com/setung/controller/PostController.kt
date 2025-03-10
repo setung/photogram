@@ -35,5 +35,19 @@ class PostController(
         @RequestPart("newImages", required = false) newImages: List<MultipartFile> = emptyList()
     ) =
         ResponseEntity(postService.update(loginUserId, postId, request, newImages), HttpStatus.OK)
+
+    @GetMapping("/{postId}")
+    fun findById(@LoginUser loginUserId: Long, @PathVariable postId: Long) =
+        ResponseEntity(postService.findPost(loginUserId, postId), HttpStatus.OK)
+
+    @GetMapping()
+    fun findAllByUserId(
+        @LoginUser loginUserId: Long,
+        @RequestParam(required = true) userId: Long,
+        @RequestParam(required = false) cursor: Long?,
+        @RequestParam(defaultValue = "10") size: Int
+    ) {
+
+    }
 }
 

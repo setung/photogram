@@ -1,20 +1,29 @@
 package com.setung.service
 
+import com.setung.client.UserClient
+import com.setung.client.UserDto
 import com.setung.dto.PostUpdateRequest
 import com.setung.dto.PostUploadRequest
 import com.setung.entity.PostStatus
 import com.setung.error.ForbiddenException
+import com.setung.error.NotFoundException
 import com.setung.repo.PostRepository
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.BDDMockito.given
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 @SpringBootTest
 class PostServiceTest {
@@ -24,6 +33,9 @@ class PostServiceTest {
 
     @Autowired
     private lateinit var postRepository: PostRepository
+
+    @MockitoBean
+    private val userClient: UserClient = Mockito.mock()
 
     @Nested
     open inner class UploadTest {
@@ -131,7 +143,8 @@ class PostServiceTest {
         fun updateFailuresTestWithOthers() {
             val postId = postService.upload(1, PostUploadRequest("contents1", mutableSetOf()), emptyList())
             assertThrows<ForbiddenException> {
-                postService.update(2, postId,
+                postService.update(
+                    2, postId,
                     PostUpdateRequest(
                         "contensts", setOf(), listOf(), listOf()
                     ),
@@ -141,4 +154,99 @@ class PostServiceTest {
         }
     }
 
+    @Nested
+    open inner class FindTest {
+
+        @Test
+        @DisplayName("상세보기 성공 테스트 - 자신의 포스트 조회")
+        @Transactional
+        open fun findOwnDetailsSuccessTest() {
+            val request = PostUploadRequest("contents", mutableSetOf("tag1", "tag2", "tag3"))
+            val files =
+                mutableListOf(
+                    MockMultipartFile("file", "test-image.jpg", MediaType.IMAGE_JPEG_VALUE, byteArrayOf()),
+                )
+
+            val postId = postService.upload(1L, request, files)
+
+            val post = postService.findPost(1L, postId)
+
+            assertEquals(post.id, postId)
+            assertEquals(post.writerId, 1L)
+            assertNotNull(post.contents)
+            assertNotNull(post.postTags)
+            assertNotNull(post.images)
+        }
+
+        @Test
+        @DisplayName("상세보기 성공 테스트 - 공개 유저의 포스트 조회")
+        @Transactional
+        open fun findPublicDetailsSuccessTest() {
+            given(userClient.getUser(2L, 1L)).willReturn(
+                UserDto(
+                    id = 1L,
+                    isVisible = true,
+                    email = "tester@test.com",
+                    name = "name",
+                    biography = "biography",
+                    createdAt = LocalDateTime.now(),
+                    updatedAt = LocalDateTime.now()
+                )
+            )
+
+            val request = PostUploadRequest("contents", mutableSetOf("tag1", "tag2", "tag3"))
+            val files =
+                mutableListOf(
+                    MockMultipartFile("file", "test-image.jpg", MediaType.IMAGE_JPEG_VALUE, byteArrayOf()),
+                )
+
+            val postId = postService.upload(1L, request, files)
+
+            val post = postService.findPost(2L, postId)
+
+            assertEquals(post.id, postId)
+            assertEquals(post.writerId, 1L)
+            assertNotNull(post.contents)
+            assertNotNull(post.postTags)
+            assertNotNull(post.images)
+        }
+
+        @Test
+        @DisplayName("상세보기 성공 테스트 - 비공개 유저 포스트 조회")
+        fun findPrivateDetailsSuccessTest() {
+            given(userClient.getUser(2L, 1L)).willReturn(
+                UserDto(
+                    id = 1L,
+                    isVisible = false,
+                    email = null,
+                    name = "name",
+                    biography = null,
+                    createdAt = null,
+                    updatedAt = null,
+                )
+            )
+
+            val request = PostUploadRequest("contents", mutableSetOf("tag1", "tag2", "tag3"))
+            val files =
+                mutableListOf(
+                    MockMultipartFile("file", "test-image.jpg", MediaType.IMAGE_JPEG_VALUE, byteArrayOf()),
+                )
+
+            val postId = postService.upload(1L, request, files)
+
+            val post = postService.findPost(2L, postId)
+
+            assertEquals(post.id, postId)
+            assertEquals(post.writerId, 1L)
+            assertNull(post.contents)
+            assertNull(post.postTags)
+            assertNull(post.images)
+        }
+
+        @Test
+        @DisplayName("상세보기 실패 테스트 - 존재하지 않는 id")
+        fun findFailureTestWithNonExistentId() {
+            assertThrows<NotFoundException> { postService.findById(-1) }
+        }
+    }
 }

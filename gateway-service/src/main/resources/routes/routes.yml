@@ -12,6 +12,18 @@ spring:
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
             - JwtAuthGatewayFilter
 
+        - id: user-service-allow-anonymous-get
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/user-service/users/*
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+            - name: JwtAuthGatewayFilter
+              args:
+                allowAnonymous: true
+
         - id: user-service-private-post
           uri: lb://USER-SERVICE
           predicates:
@@ -81,3 +93,37 @@ spring:
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+
+        - id: post-service-allow-anonymous-get
+          uri: lb://POST-SERVICE
+          predicates:
+            - Path=/post-service/posts/*,
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/post-service/(?<segment>.*), /$\{segment}
+            - name: JwtAuthGatewayFilter
+              args:
+                allowAnonymous: true
+
+
+        - id: post-service-private-get
+          uri: lb://POST-SERVICE
+          predicates:
+            - Path=/post-service/posts/**, /post-service/posts
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/post-service/(?<segment>.*), /$\{segment}
+            - JwtAuthGatewayFilter
+
+        - id: post-service-private-post
+          uri: lb://POST-SERVICE
+          predicates:
+            - Path=/post-service/posts
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/post-service/(?<segment>.*), /$\{segment}
+            - JwtAuthGatewayFilter
+

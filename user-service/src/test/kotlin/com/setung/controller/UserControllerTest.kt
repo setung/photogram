@@ -1,5 +1,6 @@
 package com.setung.controller
 
+import com.setung.auth.constant.LoginStatus
 import com.setung.dto.*
 import com.setung.entity.EmailCodeType
 import com.setung.error.*
@@ -240,10 +241,12 @@ class UserControllerTest : AbstractControllerTest() {
         @Test
         @DisplayName("[404] 삭제 후 계정 조회 테스트")
         fun findDeletedUserFailureTest() {
-            given(userService.findUser(1)).willThrow(NotFoundException("Could not find user"))
+            given(userService.findUser(LoginStatus.ANONYMOUS.id, 1)).willThrow(NotFoundException("Could not find user"))
 
             mockMvc().perform(
-                MockMvcRequestBuilders.get("/users/1").header("user-id", 1).contentType(MediaType.APPLICATION_JSON)
+                MockMvcRequestBuilders.get("/users/1")
+                    .header("user-id", LoginStatus.ANONYMOUS.id)
+                    .contentType(MediaType.APPLICATION_JSON)
             ).andExpect(status().isNotFound)
         }
     }
@@ -260,6 +263,7 @@ class UserControllerTest : AbstractControllerTest() {
                     name = "name",
                     email = "tester@test.com",
                     biography = "biography",
+                    isVisible = true,
                     createdAt = LocalDateTime.now(),
                     updatedAt = LocalDateTime.now()
                 )
@@ -281,19 +285,22 @@ class UserControllerTest : AbstractControllerTest() {
         @Test
         @DisplayName("[200] 유저 조회")
         fun findUserTest() {
-            given(userService.findUser(1)).willReturn(
+            given(userService.findUser(LoginStatus.ANONYMOUS.id, 1)).willReturn(
                 UserDto(
                     id = 1L,
                     name = "name",
                     email = "tester@test.com",
                     biography = "biography",
+                    isVisible = true,
                     createdAt = LocalDateTime.now(),
                     updatedAt = LocalDateTime.now()
                 )
             )
 
             mockMvc().perform(
-                MockMvcRequestBuilders.get("/users/1").contentType(MediaType.APPLICATION_JSON)
+                MockMvcRequestBuilders.get("/users/1")
+                    .header("user-id", LoginStatus.ANONYMOUS.id)
+                    .contentType(MediaType.APPLICATION_JSON)
             ).andExpect(status().isOk)
         }
 

@@ -10,6 +10,7 @@ import com.setung.error.InvalidPasswordException
 import com.setung.error.NotFoundException
 import com.setung.repo.UserRepository
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -196,23 +197,36 @@ class UserServiceTest @Autowired constructor(
         @DisplayName("자신 조회 - private 상태도 정상으로 조회 가능")
         fun findMePrivateTest() {
             val user = userService.findMe(6)
+
+            assertTrue(user.isVisible)
             assertThat(user.email).isNotNull()
         }
 
         @Test
         @DisplayName("유저 조회 - public")
         fun findUserPublicTest() {
-            val user = userService.findUser(5)
+            val user = userService.findUser(id = 5)
+
+            assertTrue(user.isVisible)
             assertThat(user.email).isNotNull()
         }
 
         @Test
         @DisplayName("유저 조회 - private")
         fun findUserPrivateTest() {
-            val user = userService.findUser(6)
+            val user = userService.findUser(id = 6)
+
+            assertFalse(user.isVisible)
             assertThat(user.email).isNull()
         }
 
+        @Test
+        @DisplayName("private 유저 조회 - 팔로우 승인된 유저의 요청시 visible true")
+        fun findUserPrivateTestWithFollowAccepted() {
+            val user = userService.findUser(1, 10)
+
+            assertTrue(user.isVisible)
+        }
     }
 
     @Nested

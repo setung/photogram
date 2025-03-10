@@ -1,16 +1,15 @@
 package com.setung.service
 
+import com.setung.auth.constant.LoginStatus
 import com.setung.auth.jwt.JwtProvider
 import com.setung.dto.*
-import com.setung.entity.EmailCodeType
-import com.setung.entity.ProfileImage
-import com.setung.entity.UserEntity
-import com.setung.entity.UserStatus
+import com.setung.entity.*
 import com.setung.error.DuplicateEmailException
 import com.setung.error.InvalidPasswordException
 import com.setung.error.NotFoundException
 import com.setung.file.FileClient
 import com.setung.mail.EmailClient
+import com.setung.repo.FollowRepository
 import com.setung.repo.ProfileImageRepository
 import com.setung.repo.UserRepository
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -26,7 +25,8 @@ class UserService(
     val emailService: EmailClient,
     val jwtProvider: JwtProvider,
     val fileClient: FileClient,
-    val profileImageRepository: ProfileImageRepository
+    val profileImageRepository: ProfileImageRepository,
+    private val followRepository: FollowRepository
 ) {
 
     fun signup(request: UserSignupRequest): Long {
@@ -86,8 +86,20 @@ class UserService(
     fun findMe(id: Long) =
         UserDto.ofPublicUser(findById(id))
 
-    fun findUser(id: Long) =
-        UserDto.of(findById(id))
+    fun findUser(loginUserId: Long = LoginStatus.ANONYMOUS.id, id: Long): UserDto {
+        val user = findById(id)
+        if (user.isPrivate && loginUserId != id) {
+            if (loginUserId == LoginStatus.ANONYMOUS.id) {
+                return UserDto.ofPrivateUser(user)
+            } else {
+                val follow = followRepository.findByRequesterIdAndTargetId(loginUserId, id)
+                if (follow == null || follow.status != FollowStatus.ACCEPTED)
+                    return UserDto.ofPrivateUser(user)
+            }
+        }
+
+        return UserDto.ofPublicUser(findById(id))
+    }
 
     fun findById(id: Long) =
         userRepository.findByIdAndStatus(id, UserStatus.NORMAL)

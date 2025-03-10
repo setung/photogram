@@ -1,6 +1,7 @@
 package com.setung.gatewayservice.filter
 
 import com.setung.auth.constant.HttpHeader
+import com.setung.auth.constant.LoginStatus
 import com.setung.auth.jwt.JwtProvider
 import org.springframework.cloud.gateway.filter.GatewayFilter
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory
@@ -20,6 +21,13 @@ class JwtAuthGatewayFilter(
             val request = exchange.request
 
             if (!request.headers.containsKey(HttpHeaders.AUTHORIZATION)) {
+                if (config!!.allowAnonymous) {
+                    val anonymousRequest = request.mutate()
+                        .header(HttpHeader.USER_ID.value, LoginStatus.ANONYMOUS.id.toString())
+                        .build()
+                    return@GatewayFilter chain.filter(exchange.mutate().request(anonymousRequest).build())
+                }
+
                 return@GatewayFilter onError(exchange, "No authorization header")
             }
 
@@ -49,5 +57,7 @@ class JwtAuthGatewayFilter(
         return response.writeWith(Mono.just(buffer))
     }
 
-    class Config
+    class Config {
+        var allowAnonymous: Boolean = false
+    }
 }
