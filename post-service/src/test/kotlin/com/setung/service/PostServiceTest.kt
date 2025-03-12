@@ -20,10 +20,10 @@ import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 @SpringBootTest
 class PostServiceTest {
@@ -182,17 +182,7 @@ class PostServiceTest {
         @DisplayName("상세보기 성공 테스트 - 공개 유저의 포스트 조회")
         @Transactional
         open fun findPublicDetailsSuccessTest() {
-            given(userClient.getUser(2L, 1L)).willReturn(
-                UserDto(
-                    id = 1L,
-                    isVisible = true,
-                    email = "tester@test.com",
-                    name = "name",
-                    biography = "biography",
-                    createdAt = LocalDateTime.now(),
-                    updatedAt = LocalDateTime.now()
-                )
-            )
+            given(userClient.getUser(2L, 1L)).willReturn(getUser(isVisible = true))
 
             val request = PostUploadRequest("contents", mutableSetOf("tag1", "tag2", "tag3"))
             val files =
@@ -214,17 +204,7 @@ class PostServiceTest {
         @Test
         @DisplayName("상세보기 성공 테스트 - 비공개 유저 포스트 조회")
         fun findPrivateDetailsSuccessTest() {
-            given(userClient.getUser(2L, 1L)).willReturn(
-                UserDto(
-                    id = 1L,
-                    isVisible = false,
-                    email = null,
-                    name = "name",
-                    biography = null,
-                    createdAt = null,
-                    updatedAt = null,
-                )
-            )
+            given(userClient.getUser(2L, 1L)).willReturn(getUser(isVisible = false))
 
             val request = PostUploadRequest("contents", mutableSetOf("tag1", "tag2", "tag3"))
             val files =
@@ -248,5 +228,45 @@ class PostServiceTest {
         fun findFailureTestWithNonExistentId() {
             assertThrows<NotFoundException> { postService.findById(-1) }
         }
+
+        @Test
+        @DisplayName("목록 조회 성공 테스트 - 공개 유저")
+        fun findAllSuccessTestWithVisibleUser() {
+            given(userClient.getUser(1L, 3L)).willReturn(getUser(isVisible = true))
+
+            val postsWithoutLastPostId = postService.findAllByWriterId(1, 3, null, 10)
+            val postsWithLastPostId = postService.findAllByWriterId(1, 3, 3, 10)
+
+            assertEquals(postsWithoutLastPostId.size, 3)
+            assertEquals(postsWithLastPostId.size, 2)
+        }
+
+        @Test
+        @DisplayName("목록 조회 성공 테스트 - 비공개 유저")
+        fun findAllSuccessTestWithNonVisibleUser() {
+            given(userClient.getUser(-1, 4)).willReturn(getUser(isVisible = false))
+
+            val posts = postService.findAllByWriterId(-1, 4, null, 10)
+
+            assertTrue(posts.isEmpty())
+        }
+
+        @Test
+        @DisplayName("목록 조회 실패 테스트 - 존재하지 않는 유저 id")
+        fun findAllSuccessTestWithNonExistedUser() {
+            given(userClient.getUser(1L, -1L)).willThrow(NotFoundException(""))
+
+            assertThrows<NotFoundException> { postService.findAllByWriterId(1, -1, null, 10) }
+        }
+
+        private fun getUser(isVisible: Boolean) = UserDto(
+            id = 1L,
+            isVisible = isVisible,
+            email = null,
+            name = "name",
+            biography = null,
+            createdAt = null,
+            updatedAt = null,
+        )
     }
 }

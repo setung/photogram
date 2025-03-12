@@ -2,6 +2,7 @@ package com.setung.service
 
 import com.setung.client.UserClient
 import com.setung.dto.PostDetails
+import com.setung.dto.PostSummary
 import com.setung.dto.PostUpdateRequest
 import com.setung.dto.PostUploadRequest
 import com.setung.entity.PostEntity
@@ -75,5 +76,18 @@ class PostService(
         }
 
         return PostDetails.ofPrivate(post)
+    }
+
+    fun findAllByWriterId(loginUserId: Long, writerId: Long, lastPostId: Long?, pageSize: Int): List<PostSummary> {
+        val writer = userClient.getUser(loginUserId, writerId)
+
+        if (writer.isVisible) {
+            val postIds = if (lastPostId == null) postRepository.findAllIdsByWriterId(writerId, pageSize)
+            else postRepository.findAllIdsByWriterId(writerId, lastPostId, pageSize)
+
+            return postRepository.findAllByIds(postIds).map { PostSummary.of(it) }
+        }
+
+        return emptyList()
     }
 }

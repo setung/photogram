@@ -199,6 +199,73 @@ class PostControllerTest : AbstractControllerTest() {
             )
                 .andExpect(status().isUnauthorized)
         }
+
+        @Test
+        @DisplayName("[200] 게시글 목록 조회 성공 테스트 - 공개 유저")
+        fun findAllSuccessTestWithVisibleUser() {
+            given(postService.findAllByWriterId(-1, 1, 3, 3)).willReturn(
+                listOf(
+                    PostSummary(
+                        postId = 2L,
+                        firstImage = PostImageDetails(2L, "http://url/image.jpg")
+                    ),
+                    PostSummary(
+                        postId = 1L,
+                        firstImage = PostImageDetails(1L, "http://url/image.jpg")
+                    )
+                )
+            )
+
+            mockMvc().perform(
+                MockMvcRequestBuilders
+                    .get("/posts")
+                    .header("user-id", -1)
+                    .queryParam("writerId", "1")
+                    .queryParam("pageSize", "3")
+                    .queryParam("lastPostId", "3")
+
+            )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.[0].postId").value(2))
+                .andExpect(jsonPath("$.[0].firstImage.id").value(2))
+        }
+
+        @Test
+        @DisplayName("[200] 게시글 목록 조회 성공 테스트 - 비공개 유저")
+        fun findAllSuccessTestWithNonVisibleUser() {
+            given(postService.findAllByWriterId(-1, 1, 3, 3))
+                .willReturn(emptyList())
+
+            mockMvc().perform(
+                MockMvcRequestBuilders
+                    .get("/posts")
+                    .header("user-id", -1)
+                    .queryParam("writerId", "1")
+                    .queryParam("pageSize", "3")
+                    .queryParam("lastPostId", "3")
+
+            )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.size()").value(0))
+        }
+
+        @Test
+        @DisplayName("[404] 게시글 목록 조회 실패 테스트 - 존재하지 않은 유저")
+        fun findAllFailureTestWithNonExistedUser() {
+            given(postService.findAllByWriterId(-1, 1, 3, 3))
+                .willThrow(NotFoundException::class.java)
+
+            mockMvc().perform(
+                MockMvcRequestBuilders
+                    .get("/posts")
+                    .header("user-id", -1)
+                    .queryParam("writerId", "1")
+                    .queryParam("pageSize", "3")
+                    .queryParam("lastPostId", "3")
+
+            )
+                .andExpect(status().isNotFound)
+        }
     }
 
     override fun getController(): Any = PostController(postService)

@@ -14,8 +14,6 @@ interface UserClient {
     @GetMapping("/users/{userId}")
     fun getUser(@RequestHeader("user-id") loginUserId: Long, @PathVariable userId: Long): UserDto
 
-    @GetMapping("/users/hello")
-    fun hello(): String
 }
 
 data class UserDto(
