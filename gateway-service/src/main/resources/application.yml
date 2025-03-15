@@ -3,12 +3,13 @@ server:
 spring:
   config:
     import:
-      - classpath:/users/user-service-routes.yml
+      - classpath:/routes/routes.yml
     activate:
       on-profile: default
   application:
     name: apigateway-service
-
+  main:
+    web-application-type: reactive
 
 jwt:
   enabled: true

@@ -32,8 +32,8 @@ class UserController(
         ResponseEntity(userService.findMe(userId), HttpStatus.OK)
 
     @GetMapping("/{userId}")
-    fun findUser(@PathVariable userId: Long) =
-        ResponseEntity(userService.findUser(userId), HttpStatus.OK)
+    fun findUser(@LoginUser loginUserId: Long, @PathVariable userId: Long) =
+        ResponseEntity(userService.findUser(loginUserId, userId), HttpStatus.OK)
 
     @PatchMapping("/me")
     fun update(@RequestBody request: UserUpdateRequest, @LoginUser userId: Long) =

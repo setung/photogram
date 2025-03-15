@@ -1,5 +1,7 @@
 package com.setung.service
 
+import com.setung.client.UserClient
+import com.setung.dto.PostDetails
 import com.setung.dto.PostUpdateRequest
 import com.setung.dto.PostUploadRequest
 import com.setung.entity.PostEntity
@@ -18,7 +20,8 @@ import org.springframework.web.multipart.MultipartFile
 class PostService(
     private val postRepository: PostRepository,
     private val fileClient: FileClient,
-    private val tagRepository: TagRepository
+    private val tagRepository: TagRepository,
+    private val userClient: UserClient
 ) {
 
     @Transactional
@@ -58,5 +61,19 @@ class PostService(
         }
 
         post.update(request, fileUrls, tags)
+    }
+
+    fun findPost(loginUserId: Long, postId: Long): PostDetails {
+        val post = findById(postId)
+
+        if (loginUserId == post.writerId)
+            return PostDetails.ofPublic(post)
+
+        val writer = userClient.getUser(loginUserId, post.writerId)
+        if (writer.isVisible) {
+            return PostDetails.ofPublic(post)
+        }
+
+        return PostDetails.ofPrivate(post)
     }
 }

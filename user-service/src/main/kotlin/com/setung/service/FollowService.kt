@@ -66,4 +66,7 @@ class FollowService(
         followRepository.delete(follow)
     }
 
+    fun findByRequesterIdAndTargetId(requesterId: Long, targetId: Long): FollowEntity? {
+        return followRepository.findByRequesterIdAndTargetId(requesterId, targetId)
+    }
 }

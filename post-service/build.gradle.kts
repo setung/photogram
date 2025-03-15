@@ -33,6 +33,9 @@ dependencies {
     implementation("org.springframework.cloud:spring-cloud-starter-bootstrap")
     implementation(project(":auth-library"))
     implementation(project(":common-library"))
+    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+    implementation("org.springframework.cloud:spring-cloud-starter-loadbalancer")
+    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
 
     runtimeOnly("com.mysql:mysql-connector-j")
 

@@ -22,5 +22,6 @@ spring:
       data-locations: classpath:sql/data/*.sql
 
 jwt:
+  enabled: true
   secret: 9F8xvM1QK5Pj1W7RZyG+2tOQVp3X6LbBgNT9aFovRj0=
   expiration: 3600000

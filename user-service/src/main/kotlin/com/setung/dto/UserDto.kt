@@ -7,9 +7,10 @@ data class UserDto(
     val id: Long,
     val email: String?,
     val name: String,
+    val isVisible: Boolean,
     val biography: String?,
     val createdAt: LocalDateTime?,
-    val updatedAt: LocalDateTime?
+    val updatedAt: LocalDateTime?,
 ) {
     companion object {
 
@@ -20,6 +21,7 @@ data class UserDto(
             id = user.id!!,
             email = user.email,
             name = user.name,
+            isVisible = true,
             biography = user.biography,
             createdAt = user.createdAt,
             updatedAt = user.updatedAt
@@ -28,6 +30,7 @@ data class UserDto(
         fun ofPrivateUser(user: UserEntity) = UserDto(
             id = user.id!!,
             name = user.name,
+            isVisible = false,
             email = null,
             biography = null,
             createdAt = null,
