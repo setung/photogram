@@ -12,6 +12,8 @@ interface FileClient {
 
     fun upload(file: MultipartFile): String
 
+    fun upload(files: List<MultipartFile>): List<String>
+
     fun delete(url: String)
 }
 
@@ -23,6 +25,9 @@ class MockFileClient : FileClient {
 
     override fun upload(file: MultipartFile) =
         "https://mock-storage.com/${UUID.randomUUID()}_${file.originalFilename}"
+
+    override fun upload(files: List<MultipartFile>): List<String> =
+        files.map { upload(it) }
 
     override fun delete(url: String) {
         logger.info("[MOCK] delete file: $url")
