@@ -26,6 +26,10 @@ class PostEntity(
 
 ) : BaseEntity() {
 
+    fun delete() {
+        status = PostStatus.DELETED
+    }
+
     companion object {
         fun of(writerId: Long, request: PostUploadRequest, images: List<String>, tags: List<TagEntity>): PostEntity {
             val post = PostEntity(
