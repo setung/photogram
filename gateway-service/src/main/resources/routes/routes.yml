@@ -97,7 +97,7 @@ spring:
         - id: post-service-allow-anonymous-get
           uri: lb://POST-SERVICE
           predicates:
-            - Path=/post-service/posts/*,
+            - Path=/post-service/posts/*, /post-service/posts
             - Method=GET
           filters:
             - RemoveRequestHeader=Cookie

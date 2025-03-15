@@ -40,14 +40,14 @@ class PostController(
     fun findById(@LoginUser loginUserId: Long, @PathVariable postId: Long) =
         ResponseEntity(postService.findPost(loginUserId, postId), HttpStatus.OK)
 
-    @GetMapping()
-    fun findAllByUserId(
+    @GetMapping
+    fun findAllByWriterId(
         @LoginUser loginUserId: Long,
-        @RequestParam(required = true) userId: Long,
-        @RequestParam(required = false) cursor: Long?,
-        @RequestParam(defaultValue = "10") size: Int
-    ) {
+        @RequestParam(required = true) writerId: Long,
+        @RequestParam(required = false) lastPostId: Long?,
+        @RequestParam(defaultValue = "10") pageSize: Int
+    ) =
+        ResponseEntity(postService.findAllByWriterId(loginUserId, writerId, lastPostId, pageSize), HttpStatus.OK)
 
-    }
 }
 
