@@ -1,5 +1,6 @@
 package com.setung.controller
 
+import com.setung.dto.PostUpdateRequest
 import com.setung.dto.PostUploadRequest
 import com.setung.error.ForbiddenException
 import com.setung.service.PostService
@@ -21,7 +22,7 @@ class PostControllerTest : AbstractControllerTest() {
     @DisplayName("[200] 업로드 성공 테스트")
     fun followSuccessTest() {
         val file = MockMultipartFile("file1", "test-image.jpg1", MediaType.IMAGE_JPEG_VALUE, "test image content".toByteArray())
-        val request = PostUploadRequest("contents", mutableListOf("tag1", "tag2", "tag3"))
+        val request = PostUploadRequest("contents", mutableSetOf("tag1", "tag2", "tag3"))
 
         given(postService.upload(1, request, mutableListOf(file))).willReturn(1)
 
@@ -65,6 +66,58 @@ class PostControllerTest : AbstractControllerTest() {
         mockMvc().perform(
             MockMvcRequestBuilders
                 .delete("/posts/{postId}", 1)
+                .header("user-id", "1")
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    @DisplayName("[200] 게시글 수정 성공 테스트")
+    fun updatePostSuccessTest() {
+        val request = PostUpdateRequest(
+            contents = "update",
+            newTags = mutableSetOf("1", "2"),
+            deletedPostTagIds = listOf(1, 2),
+            deletedImageIds = listOf(1, 2)
+        )
+
+        doNothing().`when`(postService).update(1, 1, request, emptyList())
+
+        mockMvc().perform(
+            MockMvcRequestBuilders
+                .multipart("/posts/{postId}", 1)
+                .file(MockMultipartFile(
+                    "request",
+                    "request.json",
+                    MediaType.APPLICATION_JSON_VALUE,
+                    objectMapper.writeValueAsString(request).toByteArray()
+                ))
+                .header("user-id", "1")
+        )
+            .andExpect(status().isOk)
+    }
+
+    @Test
+    @DisplayName("[403] 수정 실패 테스트 - 다른 유저의 게시글 수정 요청시 403 반환")
+    fun updatePostFailureTestWithOthers() {
+        val request = PostUpdateRequest(
+            contents = "update",
+            newTags = mutableSetOf("1", "2"),
+            deletedPostTagIds = listOf(1, 2),
+            deletedImageIds = listOf(1, 2)
+        )
+
+        given(postService.update(1, 1, request, emptyList())).willThrow(ForbiddenException::class.java)
+
+        mockMvc().perform(
+            MockMvcRequestBuilders
+                .multipart("/posts/{postId}", 1)
+                .file(MockMultipartFile(
+                    "request",
+                    "request.json",
+                    MediaType.APPLICATION_JSON_VALUE,
+                    objectMapper.writeValueAsString(request).toByteArray()
+                ))
                 .header("user-id", "1")
         )
             .andExpect(status().isForbidden)

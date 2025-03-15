@@ -1,6 +1,7 @@
 package com.setung.controller
 
 import com.setung.auth.annotation.LoginUser
+import com.setung.dto.PostUpdateRequest
 import com.setung.dto.PostUploadRequest
 import com.setung.service.PostService
 import org.springframework.http.HttpStatus
@@ -18,12 +19,21 @@ class PostController(
     fun upload(
         @LoginUser loginUserId: Long,
         @RequestPart("request") request: PostUploadRequest,
-        @RequestPart("images") images: List<MultipartFile>
+        @RequestPart("images", required = false) images: List<MultipartFile> = emptyList()
     ) =
         ResponseEntity(postService.upload(loginUserId, request, images), HttpStatus.OK)
 
     @DeleteMapping("/{postId}")
     fun delete(@LoginUser loginUserId: Long, @PathVariable postId: Long) =
         ResponseEntity(postService.delete(loginUserId, postId), HttpStatus.OK)
+
+    @PostMapping("/{postId}")
+    fun update(
+        @LoginUser loginUserId: Long,
+        @PathVariable postId: Long,
+        @RequestPart("request") request: PostUpdateRequest,
+        @RequestPart("newImages", required = false) newImages: List<MultipartFile> = emptyList()
+    ) =
+        ResponseEntity(postService.update(loginUserId, postId, request, newImages), HttpStatus.OK)
 }
 
