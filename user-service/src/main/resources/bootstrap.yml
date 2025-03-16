@@ -4,7 +4,10 @@ spring:
       enabled: true
       uri: http://localhost:8888
       name: user-service
-
+      profile: default
+  config:
+    activate:
+      on-profile: default
 eureka:
   client:
     register-with-eureka: true
@@ -24,7 +27,9 @@ spring:
       uri: http://config-service:8888
       name: user-service
       profile: native
-
+  config:
+    activate:
+      on-profile: native
 eureka:
   client:
     register-with-eureka: true
