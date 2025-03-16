@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: photogram
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: 1234
+    ports:
+      - "3306:3306"
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --save 60 1 --loglevel warning
+
+  discovery-service:
+    build: ./discovery-service
+    container_name: discovery-service
+    restart: always
+    ports:
+      - "8761:8761"
+
+  config-service:
+    build: ./config-service
+    container_name: config-service
+    restart: always
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./config:/app/config
+    depends_on:
+      - discovery-service
+
+  gateway-service:
+    build: ./gateway-service
+    container_name: gateway-service
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - discovery-service
+      - config-service
+
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    restart: always
+    depends_on:
+      - discovery-service
+      - config-service
+
+  post-service:
+    build: ./post-service
+    container_name: post-service
+    restart: always
+    depends_on:
+      - discovery-service
+      - config-service

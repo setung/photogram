@@ -4,10 +4,8 @@ spring:
   config:
     import:
       - classpath:/routes/routes.yml
-    activate:
-      on-profile: default
   application:
-    name: apigateway-service
+    name: gateway-service
   main:
     web-application-type: reactive
 

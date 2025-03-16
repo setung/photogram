@@ -18,7 +18,7 @@ interface FileClient {
 }
 
 @Component
-@Profile("default", "local")
+@Profile("default", "local", "native")
 class MockFileClient : FileClient {
 
     private val logger = LoggerFactory.getLogger(MockEmailClient::class.java)

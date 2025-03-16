@@ -10,7 +10,7 @@ interface EmailClient {
 }
 
 @Component
-@Profile("default", "local")
+@Profile("default", "local", "native")
 class MockEmailClient : EmailClient {
 
     private val logger = LoggerFactory.getLogger(MockEmailClient::class.java)
