@@ -6,27 +6,26 @@ spring:
     name: user-service
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/photogram
+    url: jdbc:mysql://mysql:3306/photogram
     username: admin
     password: 1234
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
-  cloud:
-    config:
-      enabled: false
+  data:
+    redis:
+      host: redis
+      port: 6379
+  flyway:
+    enabled: true
+    table: user_schema_history
 
-eureka:
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-    service-url:
-      defaultZone: http://localhost:8761/eureka
-  instance:
-    instance-id: ${spring.application.name}-${random.value}
-    prefer-ip-address: true
+jwt:
+  enabled: true
+  secret: 9F8xvM1QK5Pj1W7RZyG+2tOQVp3X6LbBgNT9aFovRj0=
+  expiration: 3600000

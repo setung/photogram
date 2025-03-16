@@ -1,6 +1,150 @@
 server:
-  port: 8000
-
+  port: 0
 spring:
+  gateway:
+    routes:
+      - id: user-service-private-get
+        uri: lb://USER-SERVICE
+        predicates:
+          - Path=/user-service/users/me
+          - Method=GET
+        filters:
+          - RemoveRequestHeader=Cookie
+          - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+          - JwtAuthGatewayFilter
+
+      - id: user-service-allow-anonymous-get
+        uri: lb://USER-SERVICE
+        predicates:
+          - Path=/user-service/users/*
+          - Method=GET
+        filters:
+          - RemoveRequestHeader=Cookie
+          - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+          - name: JwtAuthGatewayFilter
+            args:
+              allowAnonymous: true
+
+      - id: user-service-private-post
+        uri: lb://USER-SERVICE
+        predicates:
+          - Path=
+            /user-service/users/*/follow,
+            /user-service/follows/*/accept,
+            /user-service/follows/*/reject,
+            /user-service/users/me/profile-image,
+          - Method=POST
+        filters:
+          - RemoveRequestHeader=Cookie
+          - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+          - JwtAuthGatewayFilter
+
+      - id: user-service-private-patch
+        uri: lb://USER-SERVICE
+        predicates:
+          - Path=/user-service/users/me
+          - Method=PATCH
+        filters:
+          - RemoveRequestHeader=Cookie
+          - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+          - JwtAuthGatewayFilter
+
+      - id: user-service-private-delete
+        uri: lb://USER-SERVICE
+        predicates:
+          - Path=/user-service/users/me, /user-service/follows/**, /user-service/users/me/profile-image,
+          - Method=DELETE
+        filters:
+          - RemoveRequestHeader=Cookie
+          - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+          - JwtAuthGatewayFilter
+
+      - id: user-service-public-get
+        uri: lb://USER-SERVICE
+        predicates:
+          - Path=/user-service/users/**
+          - Method=GET
+        filters:
+          - RemoveRequestHeader=Cookie
+          - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+
+      - id: user-service-public-post
+        uri: lb://USER-SERVICE
+        predicates:
+          - Path=/user-service/users/signup, /user-service/users/emails/send-code, /user-service/users/login
+          - Method=POST
+        filters:
+          - RemoveRequestHeader=Cookie
+          - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+
+      - id: user-service-public-patch
+        uri: lb://USER-SERVICE
+        predicates:
+          - Path=
+          - Method=PATCH
+        filters:
+          - RemoveRequestHeader=Cookie
+          - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+
+      - id: user-service-public-delete
+        uri: lb://USER-SERVICE
+        predicates:
+          - Path=
+          - Method=DELETE
+        filters:
+          - RemoveRequestHeader=Cookie
+          - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+
+      - id: post-service-allow-anonymous-get
+        uri: lb://POST-SERVICE
+        predicates:
+          - Path=/post-service/posts/*, /post-service/posts
+          - Method=GET
+        filters:
+          - RemoveRequestHeader=Cookie
+          - RewritePath=/post-service/(?<segment>.*), /$\{segment}
+          - name: JwtAuthGatewayFilter
+            args:
+              allowAnonymous: true
+
+
+      - id: post-service-private-get
+        uri: lb://POST-SERVICE
+        predicates:
+          - Path=/post-service/posts/**, /post-service/posts
+          - Method=GET
+        filters:
+          - RemoveRequestHeader=Cookie
+          - RewritePath=/post-service/(?<segment>.*), /$\{segment}
+          - JwtAuthGatewayFilter
+
+      - id: post-service-private-post
+        uri: lb://POST-SERVICE
+        predicates:
+          - Path=/post-service/posts
+          - Method=POST
+        filters:
+          - RemoveRequestHeader=Cookie
+          - RewritePath=/post-service/(?<segment>.*), /$\{segment}
+          - JwtAuthGatewayFilter
+
+
   application:
     name: gateway-service
+
+  main:
+    web-application-type: reactive
+
+jwt:
+  enabled: true
+  secret: 9F8xvM1QK5Pj1W7RZyG+2tOQVp3X6LbBgNT9aFovRj0=
+  expiration: 3600000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: gateway
+  endpoint:
+    gateway:
+      access: read_only
