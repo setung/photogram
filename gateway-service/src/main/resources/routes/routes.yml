@@ -127,3 +127,12 @@ spring:
             - RewritePath=/post-service/(?<segment>.*), /$\{segment}
             - JwtAuthGatewayFilter
 
+        - id: feed-service-private-get
+          uri: lb://FEED-SERVICE
+          predicates:
+            - Path=/feed-service/feed ,/feed-service/feed/**
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/feed-service/(?<segment>.*), /$\{segment}
+            - JwtAuthGatewayFilter

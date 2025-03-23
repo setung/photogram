@@ -122,4 +122,7 @@ class UserService(
             user.deleteProfileImage()
         }
     }
+
+    fun getFollowers(userId: Long, status: FollowStatus): List<Long> = followRepository.findFollowersByUserId(userId, status)
+
 }
