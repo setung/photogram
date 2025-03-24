@@ -102,4 +102,7 @@ class PostService(
     fun findAllIdsByWriterId(writerId: Long, pageSize: Int): List<Long> {
         return postRepository.findAllIdsByWriterId(writerId, pageSize)
     }
+
+    fun findAllByIds(postIds: List<Long>) = postRepository.findAllByIds(postIds).map { PostDetails.ofPublic(it) }
+
 }
