@@ -29,6 +29,7 @@ spring:
           predicates:
             - Path=
               /user-service/users/*/follow,
+              /user-service/follows/**,
               /user-service/follows/*/accept,
               /user-service/follows/*/reject,
               /user-service/users/me/profile-image,
@@ -97,7 +98,7 @@ spring:
         - id: post-service-allow-anonymous-get
           uri: lb://POST-SERVICE
           predicates:
-            - Path=/post-service/posts/*, /post-service/posts
+            - Path=/post-service/posts/*, /post-service/posts, /post-service/posts/ids
             - Method=GET
           filters:
             - RemoveRequestHeader=Cookie
@@ -122,6 +123,16 @@ spring:
           predicates:
             - Path=/post-service/posts
             - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/post-service/(?<segment>.*), /$\{segment}
+            - JwtAuthGatewayFilter
+
+        - id: post-service-private-delete
+          uri: lb://POST-SERVICE
+          predicates:
+            - Path=/post-service/posts/**
+            - Method=DELETE
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/post-service/(?<segment>.*), /$\{segment}

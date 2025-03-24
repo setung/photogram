@@ -22,7 +22,10 @@ class FeedEventConsumer(
     @KafkaListener(
         topics = [
             EventTopics.POST_UPLOADED,
-            EventTopics.POST_DELETED
+            EventTopics.POST_DELETED,
+            EventTopics.USER_FOLLOWED,
+            EventTopics.USER_UNFOLLOWED,
+            EventTopics.USER_DELETED,
         ]
     )
     fun listen(message: String, ack: Acknowledgment) {

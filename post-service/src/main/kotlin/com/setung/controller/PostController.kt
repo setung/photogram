@@ -49,5 +49,11 @@ class PostController(
     ) =
         ResponseEntity(postService.findAllByWriterId(loginUserId, writerId, lastPostId, pageSize), HttpStatus.OK)
 
+    @GetMapping("/ids")
+    fun findAllIdsByWriterId(
+        @RequestParam(required = true) writerId: Long,
+        @RequestParam(defaultValue = "10") pageSize: Int
+    ) =
+        ResponseEntity(postService.findAllIdsByWriterId(writerId, pageSize), HttpStatus.OK)
 }
 

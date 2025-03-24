@@ -11,16 +11,12 @@ import com.setung.entity.TagEntity
 import com.setung.error.ForbiddenException
 import com.setung.error.NotFoundException
 import com.setung.file.FileClient
-import com.setung.kafka.event.Event
-import com.setung.kafka.event.EventType
-import com.setung.kafka.event.payload.PostUploadedEventPayload
+import com.setung.producer.PostEventProducer
 import com.setung.repo.PostRepository
 import com.setung.repo.TagRepository
-import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
-import java.util.*
 
 @Service
 class PostService(
@@ -28,7 +24,7 @@ class PostService(
     private val fileClient: FileClient,
     private val tagRepository: TagRepository,
     private val userClient: UserClient,
-    private val kafkaTemplate: KafkaTemplate<String, String>
+    private val postEventProducer: PostEventProducer
 ) {
 
     @Transactional
@@ -40,20 +36,7 @@ class PostService(
 
         val post = postRepository.save(PostEntity.of(loginUserId, request, fileUrls, tags))
 
-        val followerIds = userClient.getUserFollowers(loginUserId)
-
-        kafkaTemplate.send(
-            EventType.POST_UPLOADED.topic,
-            Event.Companion.of(
-                eventId = UUID.randomUUID().toString(),
-                type = EventType.POST_UPLOADED,
-                payload = PostUploadedEventPayload(
-                    postId = post.id!!,
-                    followerIds = followerIds
-                )
-            ).toJson()
-        )
-
+        postEventProducer.sendPostUploadEvent(post)
 
         return post.id!!
     }
@@ -70,6 +53,8 @@ class PostService(
 
         post.delete()
         postRepository.save(post)
+
+        postEventProducer.sendPostDeleteEvent(post)
     }
 
     @Transactional
@@ -112,5 +97,9 @@ class PostService(
         }
 
         return emptyList()
+    }
+
+    fun findAllIdsByWriterId(writerId: Long, pageSize: Int): List<Long> {
+        return postRepository.findAllIdsByWriterId(writerId, pageSize)
     }
 }

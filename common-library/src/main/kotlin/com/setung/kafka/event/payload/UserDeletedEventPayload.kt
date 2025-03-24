@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.setung.kafka.event.EventPayload
 
 data class UserDeletedEventPayload(
-    @JsonProperty("userId") val userId: Long,
-    @JsonProperty("postIds") val postIds: List<Long>
+    @JsonProperty("deletedUserId") val deletedUserId: Long,
+    @JsonProperty("deletedUserFollowers") val deletedUserFollowers: List<Long>
 ) : EventPayload {
 }
