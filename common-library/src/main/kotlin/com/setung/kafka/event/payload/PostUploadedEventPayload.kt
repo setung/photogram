@@ -5,6 +5,6 @@ import com.setung.kafka.event.EventPayload
 
 data class PostUploadedEventPayload(
     @JsonProperty("postId") val postId: Long,
-    @JsonProperty("followerIds") val followerIds: List<Long>
+    @JsonProperty("writerId") val writerId: Long,
 ) : EventPayload {
 }

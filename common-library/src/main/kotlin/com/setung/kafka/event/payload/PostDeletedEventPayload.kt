@@ -5,5 +5,5 @@ import com.setung.kafka.event.EventPayload
 
 data class PostDeletedEventPayload(
     @JsonProperty("postId") val postId: Long,
-    @JsonProperty("followerIds") val followerIds: List<Long>
+    @JsonProperty("writerId") val writerId: Long,
 ) : EventPayload

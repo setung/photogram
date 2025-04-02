@@ -14,6 +14,8 @@ interface UserServiceClient {
     @GetMapping("/users/{userId}")
     fun getUser(@RequestHeader("user-id") loginUserId: Long, @PathVariable userId: Long): UserDto
 
+    @GetMapping("/users/{userId}/followers")
+    fun getUserFollowers(@PathVariable userId: Long): List<Long>
 }
 
 data class UserDto(
