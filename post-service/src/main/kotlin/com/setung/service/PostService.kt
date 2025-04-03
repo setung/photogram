@@ -1,10 +1,8 @@
 package com.setung.service
 
 import com.setung.client.UserClient
-import com.setung.dto.PostDetails
-import com.setung.dto.PostSummary
-import com.setung.dto.PostUpdateRequest
-import com.setung.dto.PostUploadRequest
+import com.setung.dto.*
+import com.setung.entity.CommentEntity
 import com.setung.entity.PostEntity
 import com.setung.entity.PostStatus
 import com.setung.entity.TagEntity
@@ -12,6 +10,7 @@ import com.setung.error.ForbiddenException
 import com.setung.error.NotFoundException
 import com.setung.file.FileClient
 import com.setung.producer.PostEventProducer
+import com.setung.repo.CommentRepository
 import com.setung.repo.PostRepository
 import com.setung.repo.TagRepository
 import org.springframework.stereotype.Service
@@ -24,7 +23,8 @@ class PostService(
     private val fileClient: FileClient,
     private val tagRepository: TagRepository,
     private val userClient: UserClient,
-    private val postEventProducer: PostEventProducer
+    private val postEventProducer: PostEventProducer,
+    private val commentRepository: CommentRepository,
 ) {
 
     @Transactional
@@ -105,4 +105,44 @@ class PostService(
 
     fun findAllByIds(postIds: List<Long>) = postRepository.findAllByIds(postIds).map { PostDetails.ofPublic(it) }
 
+    fun addComment(loginUserId: Long, postId: Long, request: CommentAddRequest): Long {
+        val post = findById(postId)
+        val loginUser = userClient.getUser(loginUserId, post.writerId)
+
+        if (loginUser.isVisible) {
+            return commentRepository.save(CommentEntity.of(loginUserId, request, post)).id!!
+        } else
+            throw ForbiddenException("Could not add comment: $postId")
+    }
+
+    fun deleteComment(loginUserId: Long, commentId: Long) {
+        val comment = commentRepository.findById(commentId).orElseThrow { NotFoundException("Could not find comment with id: $commentId") }
+
+        if (comment.writerId != loginUserId && comment.post.writerId != loginUserId)
+            throw ForbiddenException("Could not delete comment: $commentId")
+
+        commentRepository.deleteById(commentId)
+    }
+
+    fun getComments(loginUserId: Long, postId: Long): List<CommentDetails> {
+        val post = findById(postId)
+        val loginUser = userClient.getUser(loginUserId, post.writerId)
+
+        return if (loginUser.isVisible) {
+            post.comments.map {
+                CommentDetails.from(it)
+            }
+        } else
+            emptyList()
+    }
+
+    fun updateComment(loginUserId: Long, commentId: Long, request: CommentAddRequest) {
+        val comment = commentRepository.findById(commentId).orElseThrow { NotFoundException("Could not find comment: $commentId") }
+
+        if (comment.writerId != loginUserId)
+            throw ForbiddenException("Could not update comment: $commentId")
+
+        comment.update(request)
+        commentRepository.save(comment)
+    }
 }

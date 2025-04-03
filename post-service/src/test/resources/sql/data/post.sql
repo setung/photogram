@@ -5,4 +5,5 @@ VALUES
     (3, 3,'NORMAL', 'visible post', sysdate(), sysdate()),
     (4, 3,'DELETED', 'deleted post', sysdate(), sysdate()),
     (5, 4,'NORMAL', 'non visible post', sysdate(), sysdate()),
-    (6, 4,'NORMAL', 'non visible post', sysdate(), sysdate());
+    (6, 4,'NORMAL', 'non visible post', sysdate(), sysdate()),
+    (7, 4,'NORMAL', 'comment test', sysdate(), sysdate());

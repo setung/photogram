@@ -1,5 +1,6 @@
 package com.setung.entity
 
+import com.setung.dto.CommentAddRequest
 import com.setung.dto.PostUpdateRequest
 import com.setung.dto.PostUploadRequest
 import jakarta.persistence.*
@@ -23,7 +24,10 @@ class PostEntity(
     var images: MutableList<PostImageEntity> = mutableListOf(),
 
     @OneToMany(mappedBy = "post", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var postTags: MutableList<PostTagEntity> = mutableListOf()
+    var postTags: MutableList<PostTagEntity> = mutableListOf(),
+
+    @OneToMany(mappedBy = "post", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var comments: MutableList<CommentEntity> = mutableListOf()
 
 ) : BaseEntity() {
 
@@ -41,6 +45,10 @@ class PostEntity(
         val uniqueTags = newTags.filter { it.name !in existingTagNames }
         postTags.removeIf { it.id in request.deletedPostTagIds }
         postTags.addAll(uniqueTags.map { PostTagEntity.of(this, it) })
+    }
+
+    fun addComment(loginUser: Long, request: CommentAddRequest) {
+        comments.add(CommentEntity(content = request.content, writerId = loginUser, post = this))
     }
 
     companion object {

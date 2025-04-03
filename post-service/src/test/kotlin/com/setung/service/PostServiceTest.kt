@@ -2,15 +2,16 @@ package com.setung.service
 
 import com.setung.client.UserClient
 import com.setung.client.UserDto
+import com.setung.dto.CommentAddRequest
 import com.setung.dto.PostUpdateRequest
 import com.setung.dto.PostUploadRequest
 import com.setung.entity.PostStatus
 import com.setung.error.ForbiddenException
 import com.setung.error.NotFoundException
+import com.setung.repo.CommentRepository
 import com.setung.repo.PostRepository
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.BDDMockito.given
 import org.mockito.Mockito
@@ -20,13 +21,13 @@ import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.transaction.annotation.Transactional
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 @SpringBootTest
 class PostServiceTest {
+
+    @Autowired
+    private lateinit var commentRepository: CommentRepository
 
     @Autowired
     private lateinit var postService: PostService
@@ -259,14 +260,91 @@ class PostServiceTest {
             assertThrows<NotFoundException> { postService.findAllByWriterId(1, -1, null, 10) }
         }
 
-        private fun getUser(isVisible: Boolean) = UserDto(
-            id = 1L,
-            isVisible = isVisible,
-            email = null,
-            name = "name",
-            biography = null,
-            createdAt = null,
-            updatedAt = null,
-        )
     }
+
+    @Nested
+    open inner class CommentTest {
+
+        @Test
+        @Transactional
+        @DisplayName("댓글 등록 성공 테스트")
+        open fun addCommentSuccessTest() {
+            given(userClient.getUser(1L, 4L)).willReturn(getUser(isVisible = true))
+
+            postService.addComment(1L, 7L, CommentAddRequest("hello"))
+
+            val post = postService.findById(7)
+
+            assertFalse(post.comments.isEmpty())
+        }
+
+        @Test
+        @DisplayName("댓글 등록 실패 테스트 - 팔로우가 아닌 private 유저 게시글엔 등록 불가")
+        fun addCommentFailureTestWithPrivateUserPost() {
+            given(userClient.getUser(1L, 4L)).willReturn(getUser(isVisible = false))
+            assertThrows<ForbiddenException> { postService.addComment(1L, 7L, CommentAddRequest("hello")) }
+        }
+
+        @Test
+        @DisplayName("댓글 등록 실패 테스트 - 존재하지 않은 게시글에 댓글 등록 불가")
+        fun addCommentFailureTestWithNonExistentPost() {
+            given(userClient.getUser(1L, 4L)).willReturn(getUser(isVisible = false))
+            assertThrows<NotFoundException> { postService.addComment(1L, -1L, CommentAddRequest("hello")) }
+        }
+
+        @Test
+        @Transactional
+        @DisplayName("댓글 삭제 성공 테스트 - 자기가 작성한 댓글 삭제")
+        open fun deleteCommentSuccessTest() {
+            given(userClient.getUser(1L, 4L)).willReturn(getUser(isVisible = true))
+            val commentId = postService.addComment(1L, 7L, CommentAddRequest("hello"))
+
+            postService.deleteComment(1L, commentId)
+        }
+
+        @Test
+        @Transactional
+        @DisplayName("댓글 삭제 성공 테스트 - 게시글 작성자는 모든 댓글 삭제 가능")
+        open fun deleteCommentSuccessTestWithPostWriter() {
+            given(userClient.getUser(1L, 4L)).willReturn(getUser(isVisible = true))
+            val commentId = postService.addComment(1L, 7L, CommentAddRequest("hello"))
+
+            postService.deleteComment(4L, commentId)
+        }
+
+
+        @Test
+        @Transactional
+        @DisplayName("댓글 수정 성공 테스트")
+        open fun updateCommentSuccessTest() {
+            given(userClient.getUser(1L, 4L)).willReturn(getUser(isVisible = true))
+            val commentId = postService.addComment(1L, 7L, CommentAddRequest("hello"))
+
+            postService.updateComment(1L, commentId, CommentAddRequest("world"))
+
+            val comment = commentRepository.findById(commentId).get()
+            assertEquals(comment.content, "world")
+        }
+
+        @Test
+        @Transactional
+        @DisplayName("댓글 수정 성공 테스트 - 자신의 댓글이 아니라면 예외")
+        open fun updateCommentFailureTest() {
+            given(userClient.getUser(1L, 4L)).willReturn(getUser(isVisible = true))
+            val commentId = postService.addComment(1L, 7L, CommentAddRequest("hello"))
+
+            assertThrows<ForbiddenException> { postService.updateComment(4L, commentId, CommentAddRequest("world")) }
+        }
+
+    }
+
+    private fun getUser(isVisible: Boolean) = UserDto(
+        id = 1L,
+        isVisible = isVisible,
+        email = null,
+        name = "name",
+        biography = null,
+        createdAt = null,
+        updatedAt = null,
+    )
 }

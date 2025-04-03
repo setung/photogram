@@ -98,7 +98,7 @@ spring:
         - id: post-service-allow-anonymous-get
           uri: lb://POST-SERVICE
           predicates:
-            - Path=/post-service/posts/*, /post-service/posts, /post-service/posts/ids
+            - Path=/post-service/posts/*, /post-service/posts, /post-service/posts/ids, /post-service/posts/*/comments
             - Method=GET
           filters:
             - RemoveRequestHeader=Cookie
@@ -121,7 +121,7 @@ spring:
         - id: post-service-private-post
           uri: lb://POST-SERVICE
           predicates:
-            - Path=/post-service/posts
+            - Path=/post-service/posts, /post-service/posts/*/comments
             - Method=POST
           filters:
             - RemoveRequestHeader=Cookie
@@ -131,8 +131,18 @@ spring:
         - id: post-service-private-delete
           uri: lb://POST-SERVICE
           predicates:
-            - Path=/post-service/posts/**
+            - Path=/post-service/posts/**, /post-service/posts/comments/*
             - Method=DELETE
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/post-service/(?<segment>.*), /$\{segment}
+            - JwtAuthGatewayFilter
+
+        - id: post-service-private-patch
+          uri: lb://POST-SERVICE
+          predicates:
+            - Path=/post-service/posts/comments/*
+            - Method=PATCH
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/post-service/(?<segment>.*), /$\{segment}

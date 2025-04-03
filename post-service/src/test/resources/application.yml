@@ -16,3 +16,8 @@ spring:
     init:
       mode: always
       data-locations: classpath:sql/data/*.sql
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-serializer: org.apache.kafka.common.serialization.StringDeserializer

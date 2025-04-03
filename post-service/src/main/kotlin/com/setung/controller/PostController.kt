@@ -1,6 +1,7 @@
 package com.setung.controller
 
 import com.setung.auth.annotation.LoginUser
+import com.setung.dto.CommentAddRequest
 import com.setung.dto.PostUpdateRequest
 import com.setung.dto.PostUploadRequest
 import com.setung.service.PostService
@@ -59,5 +60,23 @@ class PostController(
     @GetMapping
     fun getPostsByIds(@RequestParam postIds: List<Long>) = ResponseEntity(postService.findAllByIds(postIds), HttpStatus.OK)
 
+    @PostMapping("/{postId}/comments")
+    fun addComment(@LoginUser loginUserId: Long, @PathVariable postId: Long, @RequestBody commentAddRequest: CommentAddRequest) =
+        postService.addComment(loginUserId, postId, commentAddRequest)
+
+
+    @DeleteMapping("/comments/{commentId}")
+    fun deleteComment(@LoginUser loginUserId: Long, @PathVariable commentId: Long) {
+        postService.deleteComment(loginUserId, commentId)
+    }
+
+    @GetMapping("/{postId}/comments")
+    fun getComments(@LoginUser loginUserId: Long, @PathVariable postId: Long) = postService.getComments(loginUserId, postId)
+
+
+    @PatchMapping("/comments/{commentId}")
+    fun updateComment(@LoginUser loginUserId: Long, @PathVariable commentId: Long, @RequestBody request: CommentAddRequest) {
+        postService.updateComment(loginUserId, commentId, request)
+    }
 }
 
