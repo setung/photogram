@@ -69,6 +69,7 @@ class PostService(
             tagRepository.findByName(it) ?: tagRepository.save(TagEntity.of(it))
         }
 
+        postEventProducer.sendPostUpdateEvent(post)
         post.update(request, fileUrls, tags)
     }
 

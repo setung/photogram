@@ -62,6 +62,8 @@ class UserService(
 
     fun update(id: Long, request: UserUpdateRequest) {
         val user = findById(id)
+        if (request.isPrivate != user.isPrivate)
+            userEventPublisher.sendUserVisibleChangeEvent(user.id!!, !request.isPrivate)
         user.update(request)
         userRepository.save(user)
     }
