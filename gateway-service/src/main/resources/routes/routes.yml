@@ -121,7 +121,7 @@ spring:
         - id: post-service-private-post
           uri: lb://POST-SERVICE
           predicates:
-            - Path=/post-service/posts, /post-service/posts/*/comments
+            - Path=/post-service/posts, /post-service/posts/*/comments, /post-service/posts/*
             - Method=POST
           filters:
             - RemoveRequestHeader=Cookie
@@ -141,7 +141,7 @@ spring:
         - id: post-service-private-patch
           uri: lb://POST-SERVICE
           predicates:
-            - Path=/post-service/posts/comments/*
+            - Path=/post-service/posts/comments/*,
             - Method=PATCH
           filters:
             - RemoveRequestHeader=Cookie
@@ -157,3 +157,12 @@ spring:
             - RemoveRequestHeader=Cookie
             - RewritePath=/feed-service/(?<segment>.*), /$\{segment}
             - JwtAuthGatewayFilter
+
+        - id: post-search-service-public-get
+          uri: lb://post-search-service
+          predicates:
+            - Path=/post-search-service/posts/search
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/post-search-service/(?<segment>.*), /$\{segment}
