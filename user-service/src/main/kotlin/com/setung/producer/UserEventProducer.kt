@@ -5,6 +5,7 @@ import com.setung.kafka.event.EventType
 import com.setung.kafka.event.payload.UserDeletedEventPayload
 import com.setung.kafka.event.payload.UserFollowedEventPayload
 import com.setung.kafka.event.payload.UserUnfollowedEventPayload
+import com.setung.kafka.event.payload.UserVisibleChangedEventPayload
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Component
 import java.util.*
@@ -43,6 +44,17 @@ class UserEventProducer(
                 eventId = UUID.randomUUID().toString(),
                 type = EventType.USER_DELETED,
                 payload = UserDeletedEventPayload(userId, deletedUserFollowers)
+            ).toJson()
+        )
+    }
+
+    fun sendUserVisibleChangeEvent(userId: Long, isVisible: Boolean) {
+        kafkaTemplate.send(
+            EventType.USER_VISIBLE_CHANGED.topic,
+            Event.Companion.of(
+                eventId = UUID.randomUUID().toString(),
+                type = EventType.USER_VISIBLE_CHANGED,
+                payload = UserVisibleChangedEventPayload(userId, isVisible)
             ).toJson()
         )
     }
