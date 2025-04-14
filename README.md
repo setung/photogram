@@ -71,7 +71,16 @@ docker-compose up
 - 검색 요청 시 ES에서 `multi_match` 쿼리로 태그 기반 게시글 검색 수행
 - 태그 자동 완성 또는 관련성 높은 검색 기능 확장 가능
 
-
 ---
 
+## [Push 기반 피드 구현](https://dev-setung.tistory.com/57)
+<img width="915" alt="스크린샷 2025-04-14 오후 8 09 02" src="https://github.com/user-attachments/assets/340b90d1-7ccd-4805-b2cc-89de7fe21998" />
+
+- 클라이언트가 게시글 업로드 요청을 보낸다.
+- post-service는 게시글을 DB에 저장한 뒤, 게시글 업로드 이벤트를 Kafka로 발행한다.
+  event_payload : { postId, writerId }
+- feed-service는 Kafka에서 해당 업로드 이벤트를 pull(구독) 한다.
+- 이벤트를 가져온 feed-service는 writerId를 기반으로 user-service에 팔로워 목록을 요청한다.
+- 받아온 팔로워 목록을 순회하며, 각 유저의 피드 정보(Redis, Sorted Set)에 업로드된 게시글 ID를 저장한다.
+- 사용자가 피드를 조회할 때, Redis에 저장된 게시글 ID를 통해 빠르게 가져올 수 있게 된다.
 
