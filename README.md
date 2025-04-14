@@ -48,4 +48,30 @@ Instagram을 모티브로 한 MSA 기반의 SNS 프로젝트입니다.
 ```bash
 ./gradlew build
 docker-compose up
+```
+
+---
+
+## [인증 시스템](https://dev-setung.tistory.com/55) (JWT + Gateway 인증 필터)
+<img width="656" alt="스크린샷 2025-04-14 오후 2 56 01" src="https://github.com/user-attachments/assets/5295d268-7fe9-4982-8f9f-a9bf48ec48f5" />
+
+- 로그인 시 `user-service`에서 JWT를 생성하고 클라이언트에 전달
+- 모든 요청은 `Gateway`에서 JWT를 검증 후 `user-id`를 헤더로 추가해 마이크로서비스로 전달
+- 각 서비스에서는 `user-id`를 통해 인증된 사용자 정보를 활용
+- 익명 사용자 요청도 지원 (JWT 미포함 시 `user-id: -1`로 간주)
+- 인증이 필요한 API와 아닌 API를 구분할 수 있는 설정 제공 (`allowAnonymous`)
+
+---
+
+## [태그 기반 게시글 검색](https://dev-setung.tistory.com/56) (ElasticSearch + Kafka)
+<img width="580" alt="스크린샷 2025-04-14 오후 2 56 32" src="https://github.com/user-attachments/assets/fe1e21b4-e185-42a7-b6d5-58dc90ed978f" />
+
+- 게시글 저장 시 Kafka를 통해 게시글 정보를 `post-search-service`로 전송
+- `post-search-service`는 해당 데이터를 ElasticSearch에 인덱싱
+- 검색 요청 시 ES에서 `multi_match` 쿼리로 태그 기반 게시글 검색 수행
+- 태그 자동 완성 또는 관련성 높은 검색 기능 확장 가능
+
+
+---
+
 
