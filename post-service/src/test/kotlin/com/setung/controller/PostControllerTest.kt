@@ -218,9 +218,8 @@ class PostControllerTest : AbstractControllerTest() {
 
             mockMvc().perform(
                 MockMvcRequestBuilders
-                    .get("/posts")
+                    .get("/posts/writers/{writerId}", "1")
                     .header("user-id", -1)
-                    .queryParam("writerId", "1")
                     .queryParam("pageSize", "3")
                     .queryParam("lastPostId", "3")
 
@@ -238,9 +237,8 @@ class PostControllerTest : AbstractControllerTest() {
 
             mockMvc().perform(
                 MockMvcRequestBuilders
-                    .get("/posts")
+                    .get("/posts/writers/{writerId}", "1")
                     .header("user-id", -1)
-                    .queryParam("writerId", "1")
                     .queryParam("pageSize", "3")
                     .queryParam("lastPostId", "3")
 
@@ -257,9 +255,8 @@ class PostControllerTest : AbstractControllerTest() {
 
             mockMvc().perform(
                 MockMvcRequestBuilders
-                    .get("/posts")
+                    .get("/posts/writers/{writerId}", "1")
                     .header("user-id", -1)
-                    .queryParam("writerId", "1")
                     .queryParam("pageSize", "3")
                     .queryParam("lastPostId", "3")
 

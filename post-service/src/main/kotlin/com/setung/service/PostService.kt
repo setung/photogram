@@ -45,6 +45,7 @@ class PostService(
         postRepository.findByIdAndStatus(postId, PostStatus.NORMAL)
             ?: throw NotFoundException("Could not find post with id $postId")
 
+    @Transactional
     fun delete(loginUserId: Long, postId: Long) {
         val post = findById(postId)
 
@@ -52,8 +53,6 @@ class PostService(
             throw ForbiddenException("Could not delete another user's post. id: $postId")
 
         post.delete()
-        postRepository.save(post)
-
         postEventProducer.sendPostDeleteEvent(post)
     }
 
@@ -137,6 +136,7 @@ class PostService(
             emptyList()
     }
 
+    @Transactional
     fun updateComment(loginUserId: Long, commentId: Long, request: CommentAddRequest) {
         val comment = commentRepository.findById(commentId).orElseThrow { NotFoundException("Could not find comment: $commentId") }
 
@@ -144,6 +144,5 @@ class PostService(
             throw ForbiddenException("Could not update comment: $commentId")
 
         comment.update(request)
-        commentRepository.save(comment)
     }
 }

@@ -7,6 +7,7 @@ import com.setung.producer.UserEventProducer
 import com.setung.repo.FollowRepository
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 class FollowService(
@@ -38,6 +39,7 @@ class FollowService(
     fun findById(followId: Long): FollowEntity =
         followRepository.findById(followId).orElseThrow { NotFoundException("Could not find follow with id $followId") }
 
+    @Transactional
     fun acceptFollow(loginUserId: Long, followId: Long) {
         val follow = findById(followId)
 
@@ -48,10 +50,9 @@ class FollowService(
 
         follow.accept()
         userEventPublisher.sendUserFollowEvent(follow.requester.id!!, follow.target.id!!)
-
-        followRepository.save(follow)
     }
 
+    @Transactional
     fun rejectFollow(loginUserId: Long, followId: Long) {
         val follow = findById(followId)
 
@@ -62,8 +63,6 @@ class FollowService(
 
         follow.reject()
         userEventPublisher.sendUserUnfollowEvent(follow.requester.id!!, follow.target.id!!)
-
-        followRepository.save(follow)
     }
 
     fun deleteFollow(loginUserId: Long, followId: Long) {

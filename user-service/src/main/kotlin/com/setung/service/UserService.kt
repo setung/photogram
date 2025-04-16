@@ -60,32 +60,30 @@ class UserService(
         return jwtProvider.createToken(user.id!!)
     }
 
+    @Transactional
     fun update(id: Long, request: UserUpdateRequest) {
         val user = findById(id)
         if (request.isPrivate != user.isPrivate)
             userEventPublisher.sendUserVisibleChangeEvent(user.id!!, !request.isPrivate)
         user.update(request)
-        userRepository.save(user)
     }
 
+    @Transactional
     fun updatePassword(id: Long, request: PasswordUpdateRequest) {
         val user = findById(id)
         val encryptedPassword = passwordEncoder.encode(request.password)
         emailCodeService.verifyEmailCode(user.email, request.code, EmailCodeType.PASSWORD_RESET)
 
         user.updatePassword(encryptedPassword)
-
-        userRepository.save(user)
     }
 
+    @Transactional
     fun delete(id: Long, request: UserDeleteRequest) {
         val user = findById(id)
         emailCodeService.verifyEmailCode(user.email, request.code, EmailCodeType.ACCOUNT_DELETE)
         userEventPublisher.sendUserDeleteEvent(user.id!!, getFollowers(id, FollowStatus.ACCEPTED))
 
         user.delete()
-
-        userRepository.save(user)
     }
 
     fun findMe(id: Long) =
