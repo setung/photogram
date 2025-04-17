@@ -2,6 +2,7 @@ package com.setung.service
 
 import com.setung.client.UserClient
 import com.setung.client.UserDto
+import com.setung.config.TestContainerConfig
 import com.setung.dto.CommentAddRequest
 import com.setung.dto.PostUpdateRequest
 import com.setung.dto.PostUploadRequest
@@ -10,6 +11,7 @@ import com.setung.error.ForbiddenException
 import com.setung.error.NotFoundException
 import com.setung.repo.CommentRepository
 import com.setung.repo.PostRepository
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.assertThrows
@@ -17,6 +19,8 @@ import org.mockito.BDDMockito.given
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.cache.CacheManager
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -24,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional
 import kotlin.test.*
 
 @SpringBootTest
+@Import(TestContainerConfig::class)
 class PostServiceTest {
 
     @Autowired
@@ -35,8 +40,19 @@ class PostServiceTest {
     @Autowired
     private lateinit var postRepository: PostRepository
 
+    @Autowired
+    private lateinit var userService: UserService
+
     @MockitoBean
     private val userClient: UserClient = Mockito.mock()
+
+    @Autowired
+    private lateinit var cacheManager: CacheManager
+
+    @BeforeEach
+    fun clearRedis() {
+        cacheManager.getCache("post_userCache")?.clear()
+    }
 
     @Nested
     open inner class UploadTest {
@@ -225,6 +241,52 @@ class PostServiceTest {
         }
 
         @Test
+        @DisplayName("상세보기 성공 테스트 - userClient없이 caching된 유저 데이터를 불러올 수 있다.")
+        @Transactional
+        open fun findDetailsSuccessTestWithCaching() {
+            val cache = cacheManager.getCache("post_userCache")
+            cache?.put("2:1", getUser(isVisible = true))
+
+            val request = PostUploadRequest("contents", mutableSetOf("tag1", "tag2", "tag3"))
+            val files =
+                mutableListOf(
+                    MockMultipartFile("file", "test-image.jpg", MediaType.IMAGE_JPEG_VALUE, byteArrayOf()),
+                )
+
+            val postId = postService.upload(1L, request, files)
+
+            val post = postService.findPost(2L, postId)
+
+            assertEquals(post.id, postId)
+            assertEquals(post.writerId, 1L)
+            assertNotNull(post.contents)
+            assertNotNull(post.postTags)
+            assertNotNull(post.images)
+        }
+
+        @Test
+        @DisplayName("상세보기 성공 테스트 - 캐시나 userClient에서 user 데이터를 못불러오면 private으로 조회된다.")
+        fun findPrivateDetailsSuccessTestWithoutCachingAndUserClient() {
+            given(userClient.getUser(2L, 1L)).willThrow(NotFoundException::class.java)
+
+            val request = PostUploadRequest("contents", mutableSetOf("tag1", "tag2", "tag3"))
+            val files =
+                mutableListOf(
+                    MockMultipartFile("file", "test-image.jpg", MediaType.IMAGE_JPEG_VALUE, byteArrayOf()),
+                )
+
+            val postId = postService.upload(1L, request, files)
+
+            val post = postService.findPost(2L, postId)
+
+            assertEquals(post.id, postId)
+            assertEquals(post.writerId, 1L)
+            assertNull(post.contents)
+            assertNull(post.postTags)
+            assertNull(post.images)
+        }
+
+        @Test
         @DisplayName("상세보기 실패 테스트 - 존재하지 않는 id")
         fun findFailureTestWithNonExistentId() {
             assertThrows<NotFoundException> { postService.findById(-1) }
@@ -257,7 +319,8 @@ class PostServiceTest {
         fun findAllSuccessTestWithNonExistedUser() {
             given(userClient.getUser(1L, -1L)).willThrow(NotFoundException(""))
 
-            assertThrows<NotFoundException> { postService.findAllByWriterId(1, -1, null, 10) }
+            val posts = postService.findAllByWriterId(1, -1, null, 10)
+            assertTrue(posts.isEmpty())
         }
 
     }
@@ -344,7 +407,5 @@ class PostServiceTest {
         email = null,
         name = "name",
         biography = null,
-        createdAt = null,
-        updatedAt = null,
     )
 }
