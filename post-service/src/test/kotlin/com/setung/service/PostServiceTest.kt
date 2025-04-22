@@ -41,7 +41,7 @@ class PostServiceTest {
     private lateinit var postRepository: PostRepository
 
     @Autowired
-    private lateinit var userService: UserService
+    private lateinit var userClientService: UserClientService
 
     @MockitoBean
     private val userClient: UserClient = Mockito.mock()

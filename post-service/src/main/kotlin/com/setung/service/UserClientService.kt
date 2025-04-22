@@ -7,7 +7,7 @@ import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 
 @Service
-class UserService(
+class UserClientService(
     private val userClient: UserClient
 ) {
 

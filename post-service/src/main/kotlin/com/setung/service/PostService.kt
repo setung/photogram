@@ -21,7 +21,7 @@ class PostService(
     private val postRepository: PostRepository,
     private val fileClient: FileClient,
     private val tagRepository: TagRepository,
-    private val userService: UserService,
+    private val userClientService: UserClientService,
     private val postEventProducer: PostEventProducer,
     private val commentRepository: CommentRepository,
 ) {
@@ -78,7 +78,7 @@ class PostService(
         if (loginUserId == post.writerId)
             return PostDetails.ofPublic(post)
 
-        val writer = userService.getUser(loginUserId, post.writerId)
+        val writer = userClientService.getUser(loginUserId, post.writerId)
         if (writer.isVisible) {
             return PostDetails.ofPublic(post)
         }
@@ -87,7 +87,7 @@ class PostService(
     }
 
     fun findAllByWriterId(loginUserId: Long, writerId: Long, lastPostId: Long?, pageSize: Int): List<PostSummary> {
-        val writer = userService.getUser(loginUserId, writerId)
+        val writer = userClientService.getUser(loginUserId, writerId)
 
         if (writer.isVisible) {
             val postIds = if (lastPostId == null) postRepository.findAllIdsByWriterId(writerId, pageSize)
@@ -107,7 +107,7 @@ class PostService(
 
     fun addComment(loginUserId: Long, postId: Long, request: CommentAddRequest): Long {
         val post = findById(postId)
-        val loginUser = userService.getUser(loginUserId, post.writerId)
+        val loginUser = userClientService.getUser(loginUserId, post.writerId)
 
         if (loginUser.isVisible) {
             return commentRepository.save(CommentEntity.of(loginUserId, request, post)).id!!
@@ -126,7 +126,7 @@ class PostService(
 
     fun getComments(loginUserId: Long, postId: Long): List<CommentDetails> {
         val post = findById(postId)
-        val loginUser = userService.getUser(loginUserId, post.writerId)
+        val loginUser = userClientService.getUser(loginUserId, post.writerId)
 
         return if (loginUser.isVisible) {
             post.comments.map {
