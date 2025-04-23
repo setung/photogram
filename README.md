@@ -52,14 +52,15 @@ docker-compose up
 
 ---
 
-## [인증 시스템](https://dev-setung.tistory.com/55) (JWT + Gateway 인증 필터)
-<img width="656" alt="스크린샷 2025-04-14 오후 2 56 01" src="https://github.com/user-attachments/assets/5295d268-7fe9-4982-8f9f-a9bf48ec48f5" />
+## [마이크로서비스간 장애 전파 막기](https://dev-setung.tistory.com/58) (Resilience4j + Redis)
+<img width="611" alt="스크린샷 2025-04-23 오후 12 58 25" src="https://github.com/user-attachments/assets/52d62db4-cb02-48d8-ad7f-2417bb12b60b" />
 
-- 로그인 시 `user-service`에서 JWT를 생성하고 클라이언트에 전달
-- 모든 요청은 `Gateway`에서 JWT를 검증 후 `user-id`를 헤더로 추가해 마이크로서비스로 전달
-- 각 서비스에서는 `user-id`를 통해 인증된 사용자 정보를 활용
-- 익명 사용자 요청도 지원 (JWT 미포함 시 `user-id: -1`로 간주)
-- 인증이 필요한 API와 아닌 API를 구분할 수 있는 설정 제공 (`allowAnonymous`)
+**문제점**
+ - Post-service에서 게시글 조회 시, 작성자 정보를 User-service에 의존함 → User-service 장애 시 Post-service도 함께 실패하는 장애 전파 문제 발생
+
+**해결방안**
+ - Redis 캐싱: User-service 응답을 Redis에 저장, 이후 요청 시 캐시 우선 조회
+ - Resilience4j CircuitBreaker + Fallback: 캐시 미스 + User-service 장애 시, Fallback으로 비공개 사용자 정보 반환
 
 ---
 
@@ -84,3 +85,15 @@ docker-compose up
 - 받아온 팔로워 목록을 순회하며, 각 유저의 피드 정보(Redis, Sorted Set)에 업로드된 게시글 ID를 저장한다.
 - 사용자가 피드를 조회할 때, Redis에 저장된 게시글 ID를 통해 빠르게 가져올 수 있게 된다.
 
+---
+
+## [인증 시스템](https://dev-setung.tistory.com/55) (JWT + Gateway 인증 필터)
+<img width="656" alt="스크린샷 2025-04-14 오후 2 56 01" src="https://github.com/user-attachments/assets/5295d268-7fe9-4982-8f9f-a9bf48ec48f5" />
+
+- 로그인 시 `user-service`에서 JWT를 생성하고 클라이언트에 전달
+- 모든 요청은 `Gateway`에서 JWT를 검증 후 `user-id`를 헤더로 추가해 마이크로서비스로 전달
+- 각 서비스에서는 `user-id`를 통해 인증된 사용자 정보를 활용
+- 익명 사용자 요청도 지원 (JWT 미포함 시 `user-id: -1`로 간주)
+- 인증이 필요한 API와 아닌 API를 구분할 수 있는 설정 제공 (`allowAnonymous`)
+
+---
